@@ -5,7 +5,9 @@
 현재 진행:
 - Phase 0 멀티모듈 Gradle 스캐폴드 생성 완료
 - Phase 1 1차 코어 포팅 완료
-- 빌드 검증은 로컬 Java 17 / Android SDK 부재로 보류
+- mobile / wear 앱 기본 흐름 구현 완료
+- JDK 17 / Android SDK 설치 후 core test + 양쪽 `assembleDebug` 검증 완료
+- 현재 local persistence는 `Room + DataStore` 대신 file-backed 임시 구현
 
 ## 1. 목표
 
