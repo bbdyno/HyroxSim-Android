@@ -40,6 +40,7 @@ import com.bbdyno.hyroxsim.android.data.healthservices.HeartRateListener
 import com.bbdyno.hyroxsim.android.data.local.LocalWorkoutLibrary
 import com.bbdyno.hyroxsim.android.feature.active.wear.ActiveWearScreen
 import com.bbdyno.hyroxsim.android.feature.history.wear.HistoryWearScreen
+import com.bbdyno.hyroxsim.android.feature.home.wear.ConfirmStartWearScreen
 import com.bbdyno.hyroxsim.android.feature.home.wear.HomeWearFeatureScreen
 import com.bbdyno.hyroxsim.android.feature.summary.wear.SummaryWearScreen
 import java.time.Instant
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
 
 private enum class WearDestination {
     HOME,
+    CONFIRM_START,
     HISTORY,
     SUMMARY,
     ACTIVE_LOCAL,
@@ -90,6 +92,7 @@ private fun WearApp(
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     val history = remember { mutableStateListOf<CompletedWorkout>() }
     var destination by remember { mutableStateOf(WearDestination.HOME) }
+    var selectedTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
     var selectedSummary by remember { mutableStateOf<CompletedWorkout?>(null) }
     var localSession by remember { mutableStateOf<WearSession?>(null) }
     var mirrorState by remember { mutableStateOf<LiveWorkoutState?>(null) }
@@ -301,8 +304,18 @@ private fun WearApp(
             templates = templates,
             pairedLabel = pairedLabel,
             onOpenHistory = { destination = WearDestination.HISTORY },
-            onStartWorkout = ::startWatchWorkout,
+            onSelectTemplate = { template ->
+                selectedTemplate = template
+                destination = WearDestination.CONFIRM_START
+            },
         )
+
+        WearDestination.CONFIRM_START -> selectedTemplate?.let { template ->
+            ConfirmStartWearScreen(
+                template = template,
+                onStartWorkout = { startWatchWorkout(template) },
+            )
+        }
 
         WearDestination.HISTORY -> HistoryWearScreen(
             workouts = history,
@@ -319,6 +332,7 @@ private fun WearApp(
         WearDestination.ACTIVE_LOCAL -> currentLocalState()?.let { state ->
             ActiveWearScreen(
                 state = state,
+                modeLabel = "Watch authoritative",
                 onAdvance = {
                     val session = localSession
                     if (session != null) {
@@ -358,6 +372,7 @@ private fun WearApp(
         WearDestination.ACTIVE_MIRROR -> mirrorState?.let { state ->
             ActiveWearScreen(
                 state = state,
+                modeLabel = "Phone mirror",
                 onAdvance = { syncCoordinator.sendCommand(WorkoutCommand.ADVANCE) },
                 onPauseResume = {
                     syncCoordinator.sendCommand(

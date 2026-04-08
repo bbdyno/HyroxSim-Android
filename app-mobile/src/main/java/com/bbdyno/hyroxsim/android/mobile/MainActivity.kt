@@ -30,7 +30,6 @@ import com.bbdyno.hyroxsim.android.core.format.DistanceFormatter
 import com.bbdyno.hyroxsim.android.core.format.DurationFormatter
 import com.bbdyno.hyroxsim.android.core.model.CompletedWorkout
 import com.bbdyno.hyroxsim.android.core.model.HeartRateSample
-import com.bbdyno.hyroxsim.android.core.model.HyroxDivision
 import com.bbdyno.hyroxsim.android.core.model.HyroxPresets
 import com.bbdyno.hyroxsim.android.core.model.SegmentType
 import com.bbdyno.hyroxsim.android.core.model.WorkoutSegment
@@ -45,9 +44,9 @@ import com.bbdyno.hyroxsim.android.feature.active.mobile.ActiveMobileScreen
 import com.bbdyno.hyroxsim.android.feature.builder.mobile.BuilderMobileScreen
 import com.bbdyno.hyroxsim.android.feature.history.mobile.HistoryMobileScreen
 import com.bbdyno.hyroxsim.android.feature.home.mobile.HomeMobileScreen
+import com.bbdyno.hyroxsim.android.feature.home.mobile.TemplateDetailMobileScreen
 import com.bbdyno.hyroxsim.android.feature.summary.mobile.SummaryMobileScreen
 import java.time.Instant
-import java.util.UUID
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -71,6 +70,7 @@ class MainActivity : ComponentActivity() {
 
 private enum class MobileDestination {
     HOME,
+    TEMPLATE_DETAIL,
     BUILDER,
     HISTORY,
     SUMMARY,
@@ -93,8 +93,8 @@ private fun MobileApp(
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     val history = remember { mutableStateListOf<CompletedWorkout>() }
     var destination by remember { mutableStateOf(MobileDestination.HOME) }
-    var selectedDivision by remember { mutableStateOf(HyroxDivision.MEN_OPEN_SINGLE) }
-    var draftName by remember { mutableStateOf(HyroxDivision.MEN_OPEN_SINGLE.displayName) }
+    var selectedTemplateDetail by remember { mutableStateOf<WorkoutTemplate?>(null) }
+    var builderSeedTemplate by remember { mutableStateOf(HyroxPresets.menOpenSingle) }
     var selectedSummary by remember { mutableStateOf<CompletedWorkout?>(null) }
     var localSession by remember { mutableStateOf<MobileSession?>(null) }
     var mirrorState by remember { mutableStateOf<LiveWorkoutState?>(null) }
@@ -189,23 +189,17 @@ private fun MobileApp(
         ).let(syncCoordinator::sendLiveState)
     }
 
-    fun saveCustomTemplate() {
-        val template = HyroxPresets.template(selectedDivision).copy(
-            id = UUID.randomUUID(),
-            name = draftName.ifBlank { selectedDivision.displayName },
-            createdAt = Instant.now(),
-            isBuiltIn = false,
-        )
+    fun saveCustomTemplate(template: WorkoutTemplate) {
         library.saveTemplate(template)
         refreshTemplates()
         syncCoordinator.sendTemplate(template)
-        destination = MobileDestination.HOME
+        selectedTemplateDetail = template
+        destination = MobileDestination.TEMPLATE_DETAIL
     }
 
     DisposableEffect(Unit) {
         refreshTemplates()
         refreshHistory()
-        draftName = selectedDivision.displayName
 
         syncCoordinator.onReachabilityChanged = { reachable ->
             isReachable = reachable
@@ -214,6 +208,9 @@ private fun MobileApp(
             if (!template.isBuiltIn) {
                 library.saveTemplate(template)
                 refreshTemplates()
+                if (selectedTemplateDetail?.id == template.id) {
+                    selectedTemplateDetail = template
+                }
             }
         }
         syncCoordinator.onReceiveTemplateDeleted = { id ->
@@ -300,6 +297,7 @@ private fun MobileApp(
                         TextButton(
                             onClick = {
                                 destination = when (destination) {
+                                    MobileDestination.TEMPLATE_DETAIL,
                                     MobileDestination.BUILDER,
                                     MobileDestination.HISTORY,
                                     MobileDestination.SUMMARY,
@@ -321,23 +319,44 @@ private fun MobileApp(
             MobileDestination.HOME -> HomeMobileScreen(
                 templates = templates,
                 pairedLabel = pairedLabel,
-                onOpenBuilder = { destination = MobileDestination.BUILDER },
+                onOpenBuilder = {
+                    builderSeedTemplate = selectedTemplateDetail ?: HyroxPresets.menOpenSingle
+                    destination = MobileDestination.BUILDER
+                },
                 onOpenHistory = { destination = MobileDestination.HISTORY },
+                onSelectTemplate = { template ->
+                    selectedTemplateDetail = template
+                    destination = MobileDestination.TEMPLATE_DETAIL
+                },
                 onStartPhoneWorkout = { template ->
                     now = Instant.now()
+                    selectedTemplateDetail = template
                     startPhoneWorkout(template)
                 },
             )
 
+            MobileDestination.TEMPLATE_DETAIL -> selectedTemplateDetail?.let { template ->
+                TemplateDetailMobileScreen(
+                    template = template,
+                    onStartPhoneWorkout = {
+                        now = Instant.now()
+                        startPhoneWorkout(template)
+                    },
+                    onCustomizeTemplate = {
+                        builderSeedTemplate = template
+                        destination = MobileDestination.BUILDER
+                    },
+                )
+            }
+
             MobileDestination.BUILDER -> BuilderMobileScreen(
-                draftName = draftName,
-                selectedDivision = selectedDivision,
-                onDraftNameChanged = { draftName = it },
-                onDivisionSelected = {
-                    selectedDivision = it
-                    draftName = it.displayName
+                startingTemplate = builderSeedTemplate,
+                onSaveTemplate = ::saveCustomTemplate,
+                onStartWorkout = { template ->
+                    now = Instant.now()
+                    selectedTemplateDetail = template
+                    startPhoneWorkout(template)
                 },
-                onSave = ::saveCustomTemplate,
             )
 
             MobileDestination.HISTORY -> HistoryMobileScreen(
@@ -408,6 +427,7 @@ private fun MobileApp(
 private fun screenTitle(destination: MobileDestination): String =
     when (destination) {
         MobileDestination.HOME -> "HYROX"
+        MobileDestination.TEMPLATE_DETAIL -> "Template"
         MobileDestination.BUILDER -> "Builder"
         MobileDestination.HISTORY -> "History"
         MobileDestination.SUMMARY -> "Summary"

@@ -7,7 +7,6 @@
 
 package com.bbdyno.hyroxsim.android.feature.home.mobile
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,6 +39,7 @@ fun HomeMobileScreen(
     pairedLabel: String,
     onOpenBuilder: () -> Unit,
     onOpenHistory: () -> Unit,
+    onSelectTemplate: (WorkoutTemplate) -> Unit,
     onStartPhoneWorkout: (WorkoutTemplate) -> Unit,
 ) {
     LazyColumn(
@@ -80,6 +80,7 @@ fun HomeMobileScreen(
         items(templates, key = { it.id }) { template ->
             TemplateCard(
                 template = template,
+                onSelectTemplate = { onSelectTemplate(template) },
                 onStartPhoneWorkout = { onStartPhoneWorkout(template) },
             )
         }
@@ -89,12 +90,12 @@ fun HomeMobileScreen(
 @Composable
 private fun TemplateCard(
     template: WorkoutTemplate,
+    onSelectTemplate: () -> Unit,
     onStartPhoneWorkout: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onStartPhoneWorkout),
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onSelectTemplate,
     ) {
         Column(
             modifier = Modifier
@@ -121,8 +122,13 @@ private fun TemplateCard(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            Button(onClick = onStartPhoneWorkout) {
-                Text("Start On Phone")
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = onSelectTemplate) {
+                    Text("Details")
+                }
+                OutlinedButton(onClick = onStartPhoneWorkout) {
+                    Text("Start On Phone")
+                }
             }
         }
     }

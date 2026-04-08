@@ -6,6 +6,8 @@ HYROX 시뮬레이션 앱의 Android + Wear OS 버전 작업 공간입니다.
 - Phase 0 멀티모듈 Gradle 스캐폴드 생성 완료
 - Phase 1 코어 포팅 완료
 - mobile / wear 앱 흐름 구현 완료
+- 모바일 템플릿 상세, 세그먼트 편집형 빌더, 심화 summary 화면 반영 완료
+- 워치 시작 확인 화면과 개선된 history / summary 반영 완료
 - `app-mobile`, `app-wear`, `core-*`, `data-*`, `feature-*` 모듈 실제 코드 반영 완료
 - 로컬 파일 기반 템플릿 / 히스토리 저장 구현 완료
 - 폰 시작 / 워치 시작 / 양방향 mirror command 기본 연결 완료
@@ -15,7 +17,7 @@ HYROX 시뮬레이션 앱의 Android + Wear OS 버전 작업 공간입니다.
 바로 볼 문서:
 - `docs/PROJECT_PLAN.md`
 - `CLAUDE.md`
-- `.codex/handoffs/latest.md`
+- 최신 handoff 문서
 
 예상 초기 명령:
 - `./gradlew -v`

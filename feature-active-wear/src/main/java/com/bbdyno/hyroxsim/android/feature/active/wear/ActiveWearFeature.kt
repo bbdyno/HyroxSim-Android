@@ -23,6 +23,7 @@ object ActiveWearFeatureInfo {
 @Composable
 fun ActiveWearScreen(
     state: LiveWorkoutState,
+    modeLabel: String,
     onAdvance: () -> Unit,
     onPauseResume: () -> Unit,
     onEnd: () -> Unit,
@@ -37,6 +38,9 @@ fun ActiveWearScreen(
                 item {
                     Text(label)
                 }
+            }
+            item {
+                Text(modeLabel)
             }
             item {
                 Card(onClick = {}) {

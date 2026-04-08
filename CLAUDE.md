@@ -7,8 +7,8 @@ HYROX 경기 시뮬레이션 앱의 Android + Wear OS 버전.
 
 ## 세션 Handoff
 
-- 최신 handoff: `.codex/handoffs/latest.md`
-- 날짜별 스냅샷: `.codex/handoffs/YYYY-MM-DD.md`
+- 최신 handoff 문서부터 읽고 이어서 작업
+- 날짜별 handoff 스냅샷 유지
 - 새 세션은 초기 분석 전에 최신 handoff를 먼저 읽고 이어서 작업
 - handoff에는 절대경로 대신 repo-relative path를 기록
 
@@ -33,7 +33,7 @@ HYROX 경기 시뮬레이션 앱의 Android + Wear OS 버전.
 ```
 
 - 새로 만들거나 수정하는 파일 헤더의 `Created by`는 항상 `bbdyno`
-- `Codex` 이름을 파일 헤더에 쓰지 않음
+- 파일 헤더에는 도구명 대신 항상 `bbdyno`만 사용
 
 ## 아키텍처 원칙
 
@@ -53,4 +53,4 @@ HYROX 경기 시뮬레이션 앱의 Android + Wear OS 버전.
 ## 문서
 
 - 구현 전 설계 기준 문서: `docs/PROJECT_PLAN.md`
-- 현재 Phase 0 상태는 `.codex/handoffs/latest.md` 기준
+- 현재 최신 구현 상태와 재개 지점은 최신 handoff 문서 기준

@@ -17,6 +17,7 @@ import androidx.wear.compose.material.TimeText
 import com.bbdyno.hyroxsim.android.core.format.DistanceFormatter
 import com.bbdyno.hyroxsim.android.core.format.DurationFormatter
 import com.bbdyno.hyroxsim.android.core.model.CompletedWorkout
+import com.bbdyno.hyroxsim.android.core.model.SegmentType
 
 object SummaryWearFeatureInfo {
     const val name: String = "feature-summary-wear"
@@ -28,7 +29,7 @@ fun SummaryWearScreen(workout: CompletedWorkout) {
         ScalingLazyColumn {
             item { TimeText() }
             item {
-                Text(workout.templateName)
+                Text(workout.division?.shortName ?: workout.templateName)
             }
             item {
                 Card(onClick = {}) {
@@ -37,13 +38,30 @@ fun SummaryWearScreen(workout: CompletedWorkout) {
                     )
                 }
             }
+            item {
+                Card(onClick = {}) {
+                    Text(
+                        "Avg HR ${workout.averageHeartRate?.toString() ?: "—"}\nMax HR ${workout.maxHeartRate?.toString() ?: "—"}",
+                    )
+                }
+            }
             items(workout.segments, key = { it.id }) { record ->
                 Card(onClick = {}) {
                     Text(
-                        "${record.stationDisplayName ?: record.type.name}\n${DurationFormatter.ms(record.activeDuration)}",
+                        "${wearSegmentLabel(workout, record)}\n${DurationFormatter.ms(record.activeDuration)}",
                     )
                 }
             }
         }
     }
 }
+
+private fun wearSegmentLabel(
+    workout: CompletedWorkout,
+    record: com.bbdyno.hyroxsim.android.core.model.SegmentRecord,
+): String =
+    when (record.type) {
+        SegmentType.RUN -> "Running"
+        SegmentType.ROX_ZONE -> "Rox Zone"
+        SegmentType.STATION -> workout.resolvedStationDisplayName(record) ?: "Station"
+    }
