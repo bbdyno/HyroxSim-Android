@@ -8,8 +8,11 @@
 package com.bbdyno.hyroxsim.android.mobile
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,6 +27,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.bbdyno.hyroxsim.android.core.engine.EngineState
 import com.bbdyno.hyroxsim.android.core.engine.WorkoutEngine
 import com.bbdyno.hyroxsim.android.core.format.DistanceFormatter
@@ -56,12 +60,14 @@ class MainActivity : ComponentActivity() {
         val syncCoordinator = WearDataLayerSyncCoordinator(
             transport = WearOsDataLayerTransport(applicationContext),
         ).also { it.activate() }
+        val phoneLocationTracker = PhoneLocationTracker(applicationContext)
 
         setContent {
             MaterialTheme {
                 MobileApp(
                     library = library,
                     syncCoordinator = syncCoordinator,
+                    phoneLocationTracker = phoneLocationTracker,
                 )
             }
         }
@@ -89,17 +95,41 @@ private data class MobileSession(
 private fun MobileApp(
     library: LocalWorkoutLibrary,
     syncCoordinator: WearDataLayerSyncCoordinator,
+    phoneLocationTracker: PhoneLocationTracker,
 ) {
+    val context = LocalContext.current
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     val history = remember { mutableStateListOf<CompletedWorkout>() }
     var destination by remember { mutableStateOf(MobileDestination.HOME) }
     var selectedTemplateDetail by remember { mutableStateOf<WorkoutTemplate?>(null) }
-    var builderSeedTemplate by remember { mutableStateOf(HyroxPresets.menOpenSingle) }
+    var builderSeedTemplate by remember {
+        mutableStateOf(
+            library.lastSelectedDivision()
+                ?.let(HyroxPresets::template)
+                ?: HyroxPresets.menOpenSingle,
+        )
+    }
     var selectedSummary by remember { mutableStateOf<CompletedWorkout?>(null) }
     var localSession by remember { mutableStateOf<MobileSession?>(null) }
     var mirrorState by remember { mutableStateOf<LiveWorkoutState?>(null) }
     var isReachable by remember { mutableStateOf(syncCoordinator.isReachable) }
     var now by remember { mutableStateOf(Instant.now()) }
+    var pendingPhoneStartTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
+    var permissionNotice by remember { mutableStateOf<String?>(null) }
+    var pendingPermissionRequest by remember { mutableStateOf<List<String>?>(null) }
+    var permissionGrantedForPendingStart by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        val granted = grants.values.all { it }
+        if (granted) {
+            permissionGrantedForPendingStart = true
+        } else if (pendingPhoneStartTemplate != null) {
+            pendingPhoneStartTemplate = null
+            permissionNotice = "Phone-origin workouts need location permission to track runs."
+        }
+    }
 
     fun refreshTemplates() {
         templates.clear()
@@ -189,6 +219,18 @@ private fun MobileApp(
         ).let(syncCoordinator::sendLiveState)
     }
 
+    fun requestPhoneWorkoutStart(template: WorkoutTemplate) {
+        val missingPermissions = context.missingPhoneWorkoutPermissions(template)
+        if (missingPermissions.isEmpty()) {
+            now = Instant.now()
+            selectedTemplateDetail = template
+            startPhoneWorkout(template)
+        } else {
+            pendingPhoneStartTemplate = template
+            pendingPermissionRequest = missingPermissions
+        }
+    }
+
     fun saveCustomTemplate(template: WorkoutTemplate) {
         library.saveTemplate(template)
         refreshTemplates()
@@ -273,11 +315,58 @@ private fun MobileApp(
         }
     }
 
+    DisposableEffect(localSession?.template?.id, localSession?.origin) {
+        val shouldTrackLocation = localSession?.origin == WorkoutOrigin.PHONE &&
+            localSession?.template?.totalRunDistanceMeters?.let { it > 0.0 } == true &&
+            context.missingPhoneWorkoutPermissions(localSession?.template ?: HyroxPresets.menOpenSingle).isEmpty()
+
+        if (shouldTrackLocation) {
+            phoneLocationTracker.onLocationSample = { sample ->
+                val session = localSession
+                if (session?.origin == WorkoutOrigin.PHONE) {
+                    session.engine.ingest(sample)
+                }
+            }
+            phoneLocationTracker.start()
+        }
+
+        onDispose {
+            phoneLocationTracker.stop()
+            phoneLocationTracker.onLocationSample = null
+        }
+    }
+
     LaunchedEffect(localSession) {
         while (localSession != null) {
             now = Instant.now()
             currentLocalState()?.let(syncCoordinator::sendLiveState)
             delay(1_000)
+        }
+    }
+
+    LaunchedEffect(pendingPermissionRequest) {
+        pendingPermissionRequest?.let { permissions ->
+            permissionLauncher.launch(permissions.toTypedArray())
+            pendingPermissionRequest = null
+        }
+    }
+
+    LaunchedEffect(permissionGrantedForPendingStart) {
+        if (permissionGrantedForPendingStart) {
+            permissionGrantedForPendingStart = false
+            pendingPhoneStartTemplate?.let { template ->
+                pendingPhoneStartTemplate = null
+                now = Instant.now()
+                selectedTemplateDetail = template
+                startPhoneWorkout(template)
+            }
+        }
+    }
+
+    LaunchedEffect(permissionNotice) {
+        permissionNotice?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            permissionNotice = null
         }
     }
 
@@ -320,7 +409,9 @@ private fun MobileApp(
                 templates = templates,
                 pairedLabel = pairedLabel,
                 onOpenBuilder = {
-                    builderSeedTemplate = selectedTemplateDetail ?: HyroxPresets.menOpenSingle
+                    builderSeedTemplate = selectedTemplateDetail
+                        ?: library.lastSelectedDivision()?.let(HyroxPresets::template)
+                        ?: HyroxPresets.menOpenSingle
                     destination = MobileDestination.BUILDER
                 },
                 onOpenHistory = { destination = MobileDestination.HISTORY },
@@ -328,20 +419,13 @@ private fun MobileApp(
                     selectedTemplateDetail = template
                     destination = MobileDestination.TEMPLATE_DETAIL
                 },
-                onStartPhoneWorkout = { template ->
-                    now = Instant.now()
-                    selectedTemplateDetail = template
-                    startPhoneWorkout(template)
-                },
+                onStartPhoneWorkout = ::requestPhoneWorkoutStart,
             )
 
             MobileDestination.TEMPLATE_DETAIL -> selectedTemplateDetail?.let { template ->
                 TemplateDetailMobileScreen(
                     template = template,
-                    onStartPhoneWorkout = {
-                        now = Instant.now()
-                        startPhoneWorkout(template)
-                    },
+                    onStartPhoneWorkout = { requestPhoneWorkoutStart(template) },
                     onCustomizeTemplate = {
                         builderSeedTemplate = template
                         destination = MobileDestination.BUILDER
@@ -351,11 +435,13 @@ private fun MobileApp(
 
             MobileDestination.BUILDER -> BuilderMobileScreen(
                 startingTemplate = builderSeedTemplate,
+                onDivisionSelected = { division ->
+                    library.setLastSelectedDivision(division)
+                },
                 onSaveTemplate = ::saveCustomTemplate,
                 onStartWorkout = { template ->
-                    now = Instant.now()
-                    selectedTemplateDetail = template
-                    startPhoneWorkout(template)
+                    template.division?.let(library::setLastSelectedDivision)
+                    requestPhoneWorkoutStart(template)
                 },
             )
 

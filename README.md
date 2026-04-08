@@ -9,7 +9,8 @@ HYROX 시뮬레이션 앱의 Android + Wear OS 버전 작업 공간입니다.
 - 모바일 템플릿 상세, 세그먼트 편집형 빌더, 심화 summary 화면 반영 완료
 - 워치 시작 확인 화면과 개선된 history / summary 반영 완료
 - `app-mobile`, `app-wear`, `core-*`, `data-*`, `feature-*` 모듈 실제 코드 반영 완료
-- 로컬 파일 기반 템플릿 / 히스토리 저장 구현 완료
+- `Room + DataStore` 기반 템플릿 / 히스토리 / 선호값 저장 구현 완료
+- 모바일 phone-origin GPS 수집 및 모바일/워치 runtime permission flow 반영 완료
 - 폰 시작 / 워치 시작 / 양방향 mirror command 기본 연결 완료
 - 상세 계획은 `docs/PROJECT_PLAN.md`에 정리
 - 로컬 JDK 17 + Android SDK 기준 `assembleDebug` 및 core test 검증 완료

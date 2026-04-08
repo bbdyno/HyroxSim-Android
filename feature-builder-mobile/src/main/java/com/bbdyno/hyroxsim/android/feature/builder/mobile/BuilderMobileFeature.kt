@@ -68,6 +68,7 @@ private val supportedStationKinds: List<StationKind> = listOf(
 @Composable
 fun BuilderMobileScreen(
     startingTemplate: WorkoutTemplate,
+    onDivisionSelected: (HyroxDivision) -> Unit,
     onSaveTemplate: (WorkoutTemplate) -> Unit,
     onStartWorkout: (WorkoutTemplate) -> Unit,
 ) {
@@ -165,6 +166,7 @@ fun BuilderMobileScreen(
                         selected = division == selectedDivision,
                         onClick = {
                             selectedDivision = division
+                            onDivisionSelected(division)
                             replaceWithTemplate(
                                 com.bbdyno.hyroxsim.android.core.model.HyroxPresets.template(division),
                             )

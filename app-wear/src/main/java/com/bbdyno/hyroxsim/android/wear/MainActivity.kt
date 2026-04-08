@@ -8,9 +8,12 @@
 package com.bbdyno.hyroxsim.android.wear
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +22,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.bbdyno.hyroxsim.android.core.engine.EngineState
 import com.bbdyno.hyroxsim.android.core.engine.WorkoutEngine
 import com.bbdyno.hyroxsim.android.core.format.DistanceFormatter
@@ -89,6 +93,7 @@ private fun WearApp(
     exerciseManager: HealthServicesExerciseSessionManager,
     heartRateMonitor: HealthServicesHeartRateMonitor,
 ) {
+    val context = LocalContext.current
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     val history = remember { mutableStateListOf<CompletedWorkout>() }
     var destination by remember { mutableStateOf(WearDestination.HOME) }
@@ -99,6 +104,39 @@ private fun WearApp(
     var isReachable by remember { mutableStateOf(syncCoordinator.isReachable) }
     var now by remember { mutableStateOf(Instant.now()) }
     var heartRateRelayActive by remember { mutableStateOf(false) }
+    var pendingStartTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
+    var pendingRelayPermissionRequest by remember { mutableStateOf(false) }
+    var permissionNotice by remember { mutableStateOf<String?>(null) }
+    var pendingPermissionRequest by remember { mutableStateOf<List<String>?>(null) }
+    var startApproved by remember { mutableStateOf(false) }
+    var relayApproved by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        val allGranted = grants.values.all { it }
+
+        if (allGranted) {
+            if (pendingStartTemplate != null) {
+                startApproved = true
+            }
+            if (pendingRelayPermissionRequest) {
+                relayApproved = true
+            }
+        } else {
+            permissionNotice = when {
+                pendingStartTemplate != null ->
+                    "Watch workouts need motion, heart rate, and location permissions."
+
+                pendingRelayPermissionRequest ->
+                    "Heart rate relay stays off until sensor permission is granted."
+
+                else -> null
+            }
+            pendingStartTemplate = null
+            pendingRelayPermissionRequest = false
+        }
+    }
 
     fun refreshTemplates() {
         templates.clear()
@@ -181,6 +219,12 @@ private fun WearApp(
     }
 
     fun startWatchWorkout(template: WorkoutTemplate) {
+        val missingPermissions = context.missingWatchWorkoutPermissions(template)
+        if (missingPermissions.isNotEmpty()) {
+            pendingStartTemplate = template
+            pendingPermissionRequest = missingPermissions
+            return
+        }
         stopRelayMonitor()
         now = Instant.now()
         val engine = WorkoutEngine(template)
@@ -245,7 +289,11 @@ private fun WearApp(
         syncCoordinator.onWorkoutStarted = { _, origin ->
             if (origin == WorkoutOrigin.PHONE && localSession == null) {
                 destination = WearDestination.ACTIVE_MIRROR
-                if (!heartRateRelayActive) {
+                val missingPermissions = context.missingWatchHeartRateRelayPermissions()
+                if (missingPermissions.isNotEmpty()) {
+                    pendingRelayPermissionRequest = true
+                    pendingPermissionRequest = missingPermissions
+                } else if (!heartRateRelayActive) {
                     heartRateMonitor.start()
                     heartRateRelayActive = true
                 }
@@ -290,6 +338,41 @@ private fun WearApp(
             now = Instant.now()
             currentLocalState()?.let(syncCoordinator::sendLiveState)
             delay(1_000)
+        }
+    }
+
+    LaunchedEffect(pendingPermissionRequest) {
+        pendingPermissionRequest?.let { permissions ->
+            permissionLauncher.launch(permissions.toTypedArray())
+            pendingPermissionRequest = null
+        }
+    }
+
+    LaunchedEffect(startApproved) {
+        if (startApproved) {
+            startApproved = false
+            val template = pendingStartTemplate
+            pendingStartTemplate = null
+            pendingRelayPermissionRequest = false
+            template?.let(::startWatchWorkout)
+        }
+    }
+
+    LaunchedEffect(relayApproved) {
+        if (relayApproved) {
+            relayApproved = false
+            pendingRelayPermissionRequest = false
+            if (destination == WearDestination.ACTIVE_MIRROR && !heartRateRelayActive) {
+                heartRateMonitor.start()
+                heartRateRelayActive = true
+            }
+        }
+    }
+
+    LaunchedEffect(permissionNotice) {
+        permissionNotice?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            permissionNotice = null
         }
     }
 

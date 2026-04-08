@@ -35,6 +35,8 @@
   - 세그먼트 편집형 builder에서 run / Rox Zone / station 추가, 재정렬, 수정 가능
   - history / summary / active workout 화면 동작
   - summary에서 zone / split / station breakdown 표시
+  - phone-origin workout 시작 전 location runtime permission 요청
+  - phone-origin run 세그먼트에서 GPS location 수집
   - phone-origin workout 시작 가능
   - completed workout 저장 가능
   - watch-origin mirror state 수신 가능
@@ -42,6 +44,7 @@
 - wear 앱:
   - 홈 / 시작 확인 / history / summary / active 화면 동작
   - watch-origin workout 시작 가능
+  - watch-origin workout 및 HR relay 진입 시 sensor/location runtime permission 요청
   - completed workout 저장 및 phone sync 가능
   - phone-origin mirror state 수신 가능
   - phone으로 command 송신 가능
@@ -52,8 +55,8 @@
   - template / completed workout durable sync
   - live state / command / heart-rate relay realtime sync
 - 로컬 저장:
-  - 현재는 `data-local/LocalWorkoutLibrary.kt`의 file-backed store 사용
-  - `ObjectOutputStream` 기반 임시 구현
+  - `Room + DataStore` 기반 local persistence 사용
+  - 기존 `hyrox-workout-library.bin` 파일이 있으면 1회 자동 마이그레이션
 
 ## 검증 완료
 
@@ -82,19 +85,13 @@
 
 - 아직 iOS와 화면이 1:1 parity는 아님
 - UIKit / SwiftUI 기준의 세밀한 시각 디자인까지 맞춘 것은 아님
-- permission flow 미구현
-- phone-origin GPS 수집 미구현
 - 실제 paired Android phone + Galaxy Watch 실기기 검증 미완
-- persistence는 계획상 `Room + DataStore`였지만 아직 파일 저장 임시 구현
 
 ## 다음 우선순위
 
-1. runtime permission flow 추가
-2. watch-origin 센서 수집을 summary/history 지표와 더 밀접하게 보정
-3. phone-origin GPS 수집 추가 여부 결정 후 구현
-4. `data-local`을 `Room + DataStore`로 승격할지 판단
-5. 실제 paired device 검증 및 edge-case 정리
-6. 시각 parity를 더 밀고 싶으면 active / design token / chart polish 순으로 강화
+1. watch-origin 센서 수집을 summary/history 지표와 더 밀접하게 보정
+2. 실제 paired Android phone + Galaxy Watch 실기기 검증 및 edge-case 정리
+3. 시각 parity를 더 밀고 싶으면 active / design token / chart polish 순으로 강화
 
 ## 환경 메모
 
