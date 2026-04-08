@@ -21,16 +21,13 @@ import androidx.health.services.client.data.ExerciseLapSummary
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
 import androidx.health.services.client.data.LocationData
+import androidx.health.services.client.data.LocationAccuracy
 import androidx.health.services.client.data.WarmUpConfig
 import com.bbdyno.hyroxsim.android.core.model.LocationSample
 import com.google.common.util.concurrent.ListenableFuture
 import java.time.Instant
 import java.util.concurrent.Executor
 import kotlin.math.max
-import kotlin.math.roundToLong
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class HealthServicesExerciseSessionManager(
     context: Context,
@@ -46,6 +43,10 @@ class HealthServicesExerciseSessionManager(
     }
 
     private val callback = object : ExerciseUpdateCallback {
+        override fun onRegistered() = Unit
+
+        override fun onRegistrationFailed(throwable: Throwable) = Unit
+
         override fun onExerciseUpdateReceived(update: ExerciseUpdate) {
             exerciseListener?.onExerciseUpdate(update.toSnapshot(bootInstantProvider()))
         }
@@ -73,30 +74,30 @@ class HealthServicesExerciseSessionManager(
         onSuccess: (WorkoutTrackingCapabilities) -> Unit,
         onError: (Throwable) -> Unit,
     ) {
-        exerciseClient.getCapabilitiesAsync()
-            .addListener(
-                Runnable {
-                    try {
-                        val capabilities = exerciseClient.getCapabilitiesAsync().get()
-                        val runningCapabilities = capabilities
-                            .takeIf { ExerciseType.RUNNING in it.supportedExerciseTypes }
-                            ?.getExerciseTypeCapabilities(ExerciseType.RUNNING)
-                        onSuccess(
-                            WorkoutTrackingCapabilities(
-                                supportsExerciseTracking = ExerciseType.RUNNING in capabilities.supportedExerciseTypes,
-                                supportsHeartRate = runningCapabilities?.supportedDataTypes?.contains(DataType.HEART_RATE_BPM) == true,
-                                supportsLocation = runningCapabilities?.supportedDataTypes?.contains(DataType.LOCATION) == true,
-                                supportsHeartRateBatching = capabilities.supportedBatchingModeOverrides.contains(
-                                    BatchingMode.HEART_RATE_5_SECONDS,
-                                ),
+        val future = exerciseClient.getCapabilitiesAsync()
+        future.addListener(
+            Runnable {
+                try {
+                    val capabilities = future.get()
+                    val runningCapabilities = capabilities
+                        .takeIf { ExerciseType.RUNNING in it.supportedExerciseTypes }
+                        ?.getExerciseTypeCapabilities(ExerciseType.RUNNING)
+                    onSuccess(
+                        WorkoutTrackingCapabilities(
+                            supportsExerciseTracking = ExerciseType.RUNNING in capabilities.supportedExerciseTypes,
+                            supportsHeartRate = runningCapabilities?.supportedDataTypes?.contains(DataType.HEART_RATE_BPM) == true,
+                            supportsLocation = runningCapabilities?.supportedDataTypes?.contains(DataType.LOCATION) == true,
+                            supportsHeartRateBatching = capabilities.supportedBatchingModeOverrides.contains(
+                                BatchingMode.HEART_RATE_5_SECONDS,
                             ),
-                        )
-                    } catch (throwable: Throwable) {
-                        onError(throwable)
-                    }
-                },
-                directExecutor,
-            )
+                        ),
+                    )
+                } catch (throwable: Throwable) {
+                    onError(throwable)
+                }
+            },
+            directExecutor,
+        )
     }
 
     override fun prepareExercise(
@@ -168,12 +169,17 @@ class HealthServicesExerciseSessionManager(
             ?.value
             ?.toInt()
         val totalDistanceMeters = metrics.getData(DataType.DISTANCE_TOTAL)
-            .lastOrNull()
             ?.total
+            ?.toDouble()
         val latestLocation = metrics.getData(DataType.LOCATION)
             .lastOrNull()
             ?.toLocationSample(bootInstant)
-        val activeDurationSeconds = activeDurationCheckpoint.toMillis().toDouble() / 1000.0
+        val activeDurationSeconds = activeDurationCheckpoint
+            ?.activeDuration
+            ?.toMillis()
+            ?.toDouble()
+            ?.div(1000.0)
+            ?: 0.0
 
         return ExerciseSessionSnapshot(
             stateLabel = exerciseStateInfo.state.toString(),
@@ -189,14 +195,15 @@ class HealthServicesExerciseSessionManager(
         bootInstant: Instant,
     ): LocationSample {
         val timestamp = bootInstant.plusMillis(timeDurationFromBoot.toMillis())
+        val locationAccuracy = accuracy as? LocationAccuracy
         return LocationSample(
             timestamp = timestamp,
             latitude = value.latitude,
             longitude = value.longitude,
-            altitude = value.altitude.takeUnless { it == LocationData.ALTITUDE_UNAVAILABLE },
-            horizontalAccuracy = accuracy?.toString()?.let { null } ?: 0.0,
+            altitude = value.altitude.takeUnless { it.isNaN() },
+            horizontalAccuracy = locationAccuracy?.horizontalPositionErrorMeters ?: 0.0,
             speed = null,
-            course = value.bearing.takeUnless { it == LocationData.BEARING_UNAVAILABLE },
+            course = value.bearing.takeUnless { it.isNaN() },
         )
     }
 }
