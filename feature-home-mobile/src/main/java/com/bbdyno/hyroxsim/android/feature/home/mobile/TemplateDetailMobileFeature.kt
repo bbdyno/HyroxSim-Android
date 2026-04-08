@@ -13,16 +13,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +34,11 @@ import com.bbdyno.hyroxsim.android.core.format.DistanceFormatter
 import com.bbdyno.hyroxsim.android.core.model.SegmentType
 import com.bbdyno.hyroxsim.android.core.model.WorkoutSegment
 import com.bbdyno.hyroxsim.android.core.model.WorkoutTemplate
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxBadge
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxDivider
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxMobileDesign
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxPrimaryButton
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxSecondaryButton
 import kotlin.math.roundToInt
 
 @Composable
@@ -41,117 +46,144 @@ fun TemplateDetailMobileScreen(
     template: WorkoutTemplate,
     onStartPhoneWorkout: () -> Unit,
     onCustomizeTemplate: () -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 20.dp,
+                bottom = 16.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        template.division?.displayName ?: template.name,
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = template.division?.displayName ?: template.name,
+                        style = HyroxMobileDesign.Typography.Headline,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        AssistChip(
-                            onClick = {},
-                            label = {
-                                Text(if (template.isBuiltIn) "Built-in" else "Custom")
-                            },
-                        )
-                        template.division?.let { division ->
-                            AssistChip(onClick = {}, label = { Text(division.shortName) })
-                        }
-                    }
                     Text(
-                        "${template.stationCount} stations • ${DistanceFormatter.short(template.totalRunDistanceMeters)} run • ~${(template.estimatedDurationSeconds / 60.0).roundToInt()} min",
+                        text = "${template.stationCount} stations · ${DistanceFormatter.short(template.totalRunDistanceMeters)} run · ~${(template.estimatedDurationSeconds / 60.0).roundToInt()} min",
                         style = MaterialTheme.typography.bodyMedium,
+                        color = HyroxMobileDesign.Colors.TextSecondary,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Button(onClick = onStartPhoneWorkout) {
-                            Text("Start Workout")
-                        }
-                        OutlinedButton(onClick = onCustomizeTemplate) {
-                            Text("Customize")
-                        }
-                    }
                 }
+            }
+
+            item { Spacer(modifier = Modifier.height(6.dp)) }
+
+            item {
+                Text(
+                    text = "COURSE",
+                    style = HyroxMobileDesign.Typography.Section,
+                    color = HyroxMobileDesign.Colors.Accent,
+                )
+            }
+
+            item {
+                HyroxDivider(color = HyroxMobileDesign.Colors.AccentDim)
+            }
+
+            itemsIndexed(template.segments, key = { _, segment -> segment.id }) { index, segment ->
+                SegmentDetailRow(
+                    segment = segment,
+                    stationOrdinal = template.segments
+                        .take(index + 1)
+                        .count { it.type == SegmentType.STATION },
+                )
             }
         }
 
-        item {
-            Text("Course", style = MaterialTheme.typography.titleLarge)
-        }
-
-        itemsIndexed(template.segments, key = { _, segment -> segment.id }) { index, segment ->
-            SegmentDetailCard(
-                segment = segment,
-                stationOrdinal = template.segments
-                    .take(index + 1)
-                    .count { it.type == SegmentType.STATION },
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 4.dp,
+                    bottom = 20.dp,
+                ),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            HyroxPrimaryButton(
+                text = "Start Workout",
+                onClick = onStartPhoneWorkout,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            HyroxSecondaryButton(
+                text = "Customize",
+                onClick = onCustomizeTemplate,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
 }
 
 @Composable
-private fun SegmentDetailCard(
+private fun SegmentDetailRow(
     segment: WorkoutSegment,
     stationOrdinal: Int,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (segment.type == SegmentType.STATION) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (segment.type == SegmentType.STATION) {
+            HyroxBadge(
+                text = "%02d".format(stationOrdinal),
+                modifier = Modifier.width(28.dp),
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .width(28.dp)
+                    .height(18.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 Box(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        text = "%02d".format(stationOrdinal),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            } else {
-                Box(modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) {
-                    Text("•", style = MaterialTheme.typography.titleMedium, color = segmentAccent(segment))
-                }
+                        .background(
+                            color = segmentAccent(segment),
+                            shape = RoundedCornerShape(99.dp),
+                        )
+                        .width(8.dp)
+                        .height(8.dp),
+                )
             }
+        }
 
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(segmentTitle(segment), style = MaterialTheme.typography.titleMedium)
-                segmentDetail(segment)?.let { detail ->
-                    Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+        Text(
+            text = segmentTitle(segment),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = HyroxMobileDesign.Colors.TextPrimary.copy(alpha = if (segment.type == SegmentType.ROX_ZONE) 0.4f else 1f),
+            fontWeight = if (segment.type == SegmentType.STATION) FontWeight.Bold else FontWeight.Normal,
+        )
+
+        segmentDetail(segment)?.let { detail ->
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = HyroxMobileDesign.Colors.TextTertiary,
+            )
         }
     }
 }
 
-@Composable
 private fun segmentAccent(segment: WorkoutSegment): Color =
     when (segment.type) {
-        SegmentType.RUN -> MaterialTheme.colorScheme.tertiary
-        SegmentType.ROX_ZONE -> MaterialTheme.colorScheme.secondary
-        SegmentType.STATION -> MaterialTheme.colorScheme.primary
+        SegmentType.RUN -> HyroxMobileDesign.Colors.RunAccent
+        SegmentType.ROX_ZONE -> HyroxMobileDesign.Colors.RoxZoneAccent
+        SegmentType.STATION -> HyroxMobileDesign.Colors.Accent
     }
 
 private fun segmentTitle(segment: WorkoutSegment): String =
@@ -164,16 +196,16 @@ private fun segmentTitle(segment: WorkoutSegment): String =
 private fun segmentDetail(segment: WorkoutSegment): String? =
     when (segment.type) {
         SegmentType.RUN -> segment.distanceMeters?.let(DistanceFormatter::short)
-        SegmentType.ROX_ZONE -> "Transition"
+        SegmentType.ROX_ZONE -> null
         SegmentType.STATION -> buildString {
             segment.stationTarget?.formatted?.let(::append)
             segment.weightKg?.let { weight ->
-                if (isNotEmpty()) append(" • ")
+                if (isNotEmpty()) append(" · ")
                 append(weight.roundToInt())
-                append(" kg")
-                segment.weightNote?.takeIf { it.isNotBlank() }?.let {
+                append("kg")
+                segment.weightNote?.takeIf { it.isNotBlank() }?.let { note ->
                     append(" ")
-                    append(it)
+                    append(note)
                 }
             }
         }.ifBlank { null }

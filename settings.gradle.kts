@@ -19,6 +19,7 @@ rootProject.name = "HyroxSim-Android"
 include(
     ":app-mobile",
     ":app-wear",
+    ":ui-mobile",
     ":core-model",
     ":core-engine",
     ":core-format",

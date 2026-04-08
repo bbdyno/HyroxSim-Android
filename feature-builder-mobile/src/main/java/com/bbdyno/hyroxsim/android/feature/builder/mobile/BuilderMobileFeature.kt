@@ -7,9 +7,10 @@
 
 package com.bbdyno.hyroxsim.android.feature.builder.mobile
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,12 +19,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +33,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bbdyno.hyroxsim.android.core.model.HyroxDivision
 import com.bbdyno.hyroxsim.android.core.model.SegmentType
@@ -39,6 +42,11 @@ import com.bbdyno.hyroxsim.android.core.model.StationKind
 import com.bbdyno.hyroxsim.android.core.model.StationTarget
 import com.bbdyno.hyroxsim.android.core.model.WorkoutSegment
 import com.bbdyno.hyroxsim.android.core.model.WorkoutTemplate
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxMobileDesign
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxPrimaryButton
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxSecondaryButton
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxSectionLabel
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxSurfaceCard
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -71,6 +79,7 @@ fun BuilderMobileScreen(
     onDivisionSelected: (HyroxDivision) -> Unit,
     onSaveTemplate: (WorkoutTemplate) -> Unit,
     onStartWorkout: (WorkoutTemplate) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     var draftName by remember(startingTemplate.id) {
         mutableStateOf(builderSeedName(startingTemplate))
@@ -112,47 +121,55 @@ fun BuilderMobileScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 20.dp,
+            bottom = 24.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Text("Workout Builder", style = MaterialTheme.typography.headlineSmall)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Workout Builder",
+                    style = HyroxMobileDesign.Typography.Headline,
+                    color = HyroxMobileDesign.Colors.TextPrimary,
+                )
+                Text(
+                    text = "Edit segments, save a template, or start immediately.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = HyroxMobileDesign.Colors.TextSecondary,
+                )
+            }
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    OutlinedTextField(
-                        value = draftName,
-                        onValueChange = {
-                            draftName = it
-                            validationMessage = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Template Name") },
-                        supportingText = {
-                            Text("Edit segments, save as a template, or start immediately.")
-                        },
+            HyroxSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = draftName,
+                    onValueChange = {
+                        draftName = it
+                        validationMessage = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Template Name") },
+                    singleLine = true,
+                    colors = builderTextFieldColors(),
+                )
+                BuilderMetaCard(segments = segments)
+                validationMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = HyroxMobileDesign.Colors.Destructive,
+                        style = MaterialTheme.typography.bodySmall,
                     )
-                    BuilderMetaCard(segments = segments)
-                    validationMessage?.let { message ->
-                        Text(
-                            text = message,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
             }
         }
 
         item {
-            Text("Preset Base", style = MaterialTheme.typography.titleMedium)
+            HyroxSectionLabel("PRESET BASE")
         }
 
         item {
@@ -172,30 +189,25 @@ fun BuilderMobileScreen(
                             )
                         },
                         label = { Text(division.shortName) },
+                        colors = builderFilterChipColors(),
                     )
                 }
             }
         }
 
         item {
-            Text("Segments", style = MaterialTheme.typography.titleMedium)
+            HyroxSectionLabel("SEGMENTS")
         }
 
         if (segments.isEmpty()) {
             item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text("No segments yet", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Add a run, Rox Zone, or station below to build a custom workout.",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
+                HyroxSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("No segments yet", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Add a run, Rox Zone, or station below to build a custom workout.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = HyroxMobileDesign.Colors.TextSecondary,
+                    )
                 }
             }
         }
@@ -229,22 +241,29 @@ fun BuilderMobileScreen(
         }
 
         item {
-            Text("Add Segment", style = MaterialTheme.typography.titleMedium)
+            HyroxSectionLabel("ADD SEGMENT")
         }
 
         item {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Button(onClick = { segments.add(WorkoutSegment.run()) }) {
-                    Text("Add Run")
-                }
-                Button(onClick = { segments.add(WorkoutSegment.roxZone()) }) {
-                    Text("Add Roxzone")
-                }
-                Button(
+                FilterChip(
+                    selected = false,
+                    onClick = { segments.add(WorkoutSegment.run()) },
+                    label = { Text("+ Add Run") },
+                    colors = builderActionChipColors(HyroxMobileDesign.Colors.RunAccent),
+                )
+                FilterChip(
+                    selected = false,
+                    onClick = { segments.add(WorkoutSegment.roxZone()) },
+                    label = { Text("+ Add ROX Zone") },
+                    colors = builderActionChipColors(HyroxMobileDesign.Colors.RoxZoneAccent),
+                )
+                FilterChip(
+                    selected = false,
                     onClick = {
                         val defaultKind = supportedStationKinds.first()
                         segments.add(
@@ -254,9 +273,9 @@ fun BuilderMobileScreen(
                             ),
                         )
                     },
-                ) {
-                    Text("Add Station")
-                }
+                    label = { Text("+ Add Station") },
+                    colors = builderActionChipColors(HyroxMobileDesign.Colors.Accent),
+                )
             }
         }
 
@@ -265,18 +284,16 @@ fun BuilderMobileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Button(
+                HyroxPrimaryButton(
+                    text = "Save Template",
                     onClick = { performIfValid(onSaveTemplate) },
                     modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Save Template")
-                }
-                OutlinedButton(
+                )
+                HyroxSecondaryButton(
+                    text = "Start Now",
                     onClick = { performIfValid(onStartWorkout) },
                     modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Start Now")
-                }
+                )
             }
         }
     }
@@ -291,17 +308,13 @@ private fun BuilderMetaCard(
         segments = segments,
     )
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text("${template.stationCount} stations", style = MaterialTheme.typography.bodyMedium)
-            Text(formatRunDistance(template.totalRunDistanceMeters), style = MaterialTheme.typography.bodyMedium)
-            Text("~${(template.estimatedDurationSeconds / 60.0).roundToInt()} min", style = MaterialTheme.typography.bodyMedium)
-        }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text("${template.stationCount} stations", style = MaterialTheme.typography.bodySmall, color = HyroxMobileDesign.Colors.TextSecondary)
+        Text(formatRunDistance(template.totalRunDistanceMeters), style = MaterialTheme.typography.bodySmall, color = HyroxMobileDesign.Colors.TextSecondary)
+        Text("~${(template.estimatedDurationSeconds / 60.0).roundToInt()} min", style = MaterialTheme.typography.bodySmall, color = HyroxMobileDesign.Colors.TextSecondary)
     }
 }
 
@@ -318,49 +331,70 @@ private fun SegmentEditorCard(
     onDelete: () -> Unit,
     onSegmentChanged: (WorkoutSegment) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+    val accentColor = segmentAccent(segment.type)
+
+    HyroxSurfaceCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    segmentHeader(segment = segment, index = index, stationOrdinal = stationOrdinal),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = accentColor,
+                )
+                segmentSummary(segment)?.let { summary ->
                     Text(
-                        segmentHeader(segment = segment, index = index, stationOrdinal = stationOrdinal),
-                        style = MaterialTheme.typography.titleMedium,
+                        summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = HyroxMobileDesign.Colors.TextSecondary,
                     )
-                    segmentSummary(segment)?.let { summary ->
-                        Text(summary, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    OutlinedButton(onClick = onMoveUp, enabled = canMoveUp) {
-                        Text("Up")
-                    }
-                    OutlinedButton(onClick = onMoveDown, enabled = canMoveDown) {
-                        Text("Down")
-                    }
-                    OutlinedButton(onClick = onDelete) {
-                        Text("Delete")
-                    }
                 }
             }
-
-            when (segment.type) {
-                SegmentType.RUN -> RunSegmentEditor(segment = segment, onSegmentChanged = onSegmentChanged)
-                SegmentType.ROX_ZONE -> Text(
-                    "Rox Zone transitions stay as timed transition segments.",
-                    style = MaterialTheme.typography.bodyMedium,
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                SmallActionButton(text = "Up", onClick = onMoveUp, enabled = canMoveUp)
+                SmallActionButton(text = "Down", onClick = onMoveDown, enabled = canMoveDown)
+                SmallActionButton(
+                    text = "Delete",
+                    onClick = onDelete,
+                    enabled = true,
+                    borderColor = HyroxMobileDesign.Colors.Destructive.copy(alpha = 0.5f),
+                    contentColor = HyroxMobileDesign.Colors.Destructive,
                 )
-
-                SegmentType.STATION -> StationSegmentEditor(segment = segment, onSegmentChanged = onSegmentChanged)
             }
         }
+
+        when (segment.type) {
+            SegmentType.RUN -> RunSegmentEditor(segment = segment, onSegmentChanged = onSegmentChanged)
+            SegmentType.ROX_ZONE -> Text(
+                "Rox Zone transitions stay as timed transition segments.",
+                style = MaterialTheme.typography.bodySmall,
+                color = HyroxMobileDesign.Colors.TextSecondary,
+            )
+            SegmentType.STATION -> StationSegmentEditor(segment = segment, onSegmentChanged = onSegmentChanged)
+        }
+    }
+}
+
+@Composable
+private fun SmallActionButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    borderColor: Color = HyroxMobileDesign.Colors.Hairline,
+    contentColor: Color = HyroxMobileDesign.Colors.TextPrimary,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Text(text = text, color = contentColor, style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -383,6 +417,8 @@ private fun RunSegmentEditor(
         },
         modifier = Modifier.fillMaxWidth(),
         label = { Text("Run Distance (meters)") },
+        singleLine = true,
+        colors = builderTextFieldColors(),
     )
 }
 
@@ -416,6 +452,7 @@ private fun StationSegmentEditor(
                         )
                     },
                     label = { Text(kind.displayName) },
+                    colors = builderFilterChipColors(),
                 )
             }
         }
@@ -435,6 +472,7 @@ private fun StationSegmentEditor(
                         onSegmentChanged(segment.copy(stationTarget = nextTarget))
                     },
                     label = { Text(candidate.label) },
+                    colors = builderFilterChipColors(),
                 )
             }
         }
@@ -450,6 +488,8 @@ private fun StationSegmentEditor(
             modifier = Modifier.fillMaxWidth(),
             label = { Text(targetFieldLabel(targetKind)) },
             enabled = targetKind != TargetKind.NONE,
+            singleLine = true,
+            colors = builderTextFieldColors(),
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -457,31 +497,61 @@ private fun StationSegmentEditor(
                 value = weightText,
                 onValueChange = { value ->
                     weightText = value
-                    onSegmentChanged(
-                        segment.copy(
-                            weightKg = value.toDoubleOrNull(),
-                        ),
-                    )
+                    onSegmentChanged(segment.copy(weightKg = value.toDoubleOrNull()))
                 },
                 modifier = Modifier.weight(1f),
                 label = { Text("Weight (kg)") },
+                singleLine = true,
+                colors = builderTextFieldColors(),
             )
             OutlinedTextField(
                 value = noteText,
                 onValueChange = { value ->
                     noteText = value
-                    onSegmentChanged(
-                        segment.copy(
-                            weightNote = value.ifBlank { null },
-                        ),
-                    )
+                    onSegmentChanged(segment.copy(weightNote = value.ifBlank { null }))
                 },
                 modifier = Modifier.weight(1f),
                 label = { Text("Weight Note") },
+                singleLine = true,
+                colors = builderTextFieldColors(),
             )
         }
     }
 }
+
+@Composable
+private fun builderTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = HyroxMobileDesign.Colors.Accent,
+    unfocusedBorderColor = HyroxMobileDesign.Colors.Hairline,
+    focusedTextColor = HyroxMobileDesign.Colors.TextPrimary,
+    unfocusedTextColor = HyroxMobileDesign.Colors.TextPrimary,
+    focusedContainerColor = HyroxMobileDesign.Colors.SurfaceElevated,
+    unfocusedContainerColor = HyroxMobileDesign.Colors.SurfaceElevated,
+    focusedLabelColor = HyroxMobileDesign.Colors.Accent,
+    unfocusedLabelColor = HyroxMobileDesign.Colors.TextSecondary,
+    cursorColor = HyroxMobileDesign.Colors.Accent,
+)
+
+@Composable
+private fun builderFilterChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = HyroxMobileDesign.Colors.SurfaceElevated,
+    labelColor = HyroxMobileDesign.Colors.TextSecondary,
+    selectedContainerColor = HyroxMobileDesign.Colors.Accent,
+    selectedLabelColor = Color.Black,
+)
+
+@Composable
+private fun builderActionChipColors(accent: Color) = FilterChipDefaults.filterChipColors(
+    containerColor = HyroxMobileDesign.Colors.SurfaceElevated,
+    labelColor = accent,
+)
+
+private fun segmentAccent(type: SegmentType): Color =
+    when (type) {
+        SegmentType.RUN -> HyroxMobileDesign.Colors.RunAccent
+        SegmentType.ROX_ZONE -> HyroxMobileDesign.Colors.RoxZoneAccent
+        SegmentType.STATION -> HyroxMobileDesign.Colors.Accent
+    }
 
 private fun builderSeedName(template: WorkoutTemplate): String =
     if (template.isBuiltIn) {
@@ -553,10 +623,8 @@ private fun defaultTargetFor(
     when (targetKind) {
         TargetKind.DISTANCE -> stationKind.defaultTarget.takeIf { it is StationTarget.Distance }
             ?: StationTarget.distance(100.0)
-
         TargetKind.REPS -> stationKind.defaultTarget.takeIf { it is StationTarget.Reps }
             ?: StationTarget.reps(10)
-
         TargetKind.DURATION -> StationTarget.duration(60.0)
         TargetKind.NONE -> StationTarget.none()
     }

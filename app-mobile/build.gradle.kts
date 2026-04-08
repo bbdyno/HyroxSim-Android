@@ -26,6 +26,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":ui-mobile"))
     implementation(project(":core-model"))
     implementation(project(":core-engine"))
     implementation(project(":core-format"))

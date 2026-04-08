@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +51,8 @@ import com.bbdyno.hyroxsim.android.feature.history.mobile.HistoryMobileScreen
 import com.bbdyno.hyroxsim.android.feature.home.mobile.HomeMobileScreen
 import com.bbdyno.hyroxsim.android.feature.home.mobile.TemplateDetailMobileScreen
 import com.bbdyno.hyroxsim.android.feature.summary.mobile.SummaryMobileScreen
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxMobileDesign
+import com.bbdyno.hyroxsim.android.ui.mobile.HyroxMobileTheme
 import java.time.Instant
 import kotlinx.coroutines.delay
 
@@ -63,7 +66,7 @@ class MainActivity : ComponentActivity() {
         val phoneLocationTracker = PhoneLocationTracker(applicationContext)
 
         setContent {
-            MaterialTheme {
+            HyroxMobileTheme {
                 MobileApp(
                     library = library,
                     syncCoordinator = syncCoordinator,
@@ -371,6 +374,8 @@ private fun MobileApp(
     }
 
     val canNavigateBack = destination != MobileDestination.HOME
+    val showTopBar = destination != MobileDestination.ACTIVE_LOCAL &&
+        destination != MobileDestination.ACTIVE_MIRROR
     val pairedLabel = if (isReachable) {
         "Watch linked"
     } else {
@@ -378,35 +383,49 @@ private fun MobileApp(
     }
 
     Scaffold(
+        containerColor = HyroxMobileDesign.Colors.Background,
         topBar = {
-            TopAppBar(
-                title = { Text(screenTitle(destination)) },
-                navigationIcon = {
-                    if (canNavigateBack) {
-                        TextButton(
-                            onClick = {
-                                destination = when (destination) {
-                                    MobileDestination.TEMPLATE_DETAIL,
-                                    MobileDestination.BUILDER,
-                                    MobileDestination.HISTORY,
-                                    MobileDestination.SUMMARY,
-                                    MobileDestination.ACTIVE_LOCAL,
-                                    MobileDestination.ACTIVE_MIRROR,
-                                    -> MobileDestination.HOME
-                                    MobileDestination.HOME -> MobileDestination.HOME
-                                }
-                            },
-                        ) {
-                            Text("Back")
+            if (showTopBar) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = screenTitle(destination),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = HyroxMobileDesign.Colors.Background,
+                        titleContentColor = HyroxMobileDesign.Colors.TextPrimary,
+                        navigationIconContentColor = HyroxMobileDesign.Colors.Accent,
+                    ),
+                    navigationIcon = {
+                        if (canNavigateBack) {
+                            TextButton(
+                                onClick = {
+                                    destination = when (destination) {
+                                        MobileDestination.TEMPLATE_DETAIL,
+                                        MobileDestination.BUILDER,
+                                        MobileDestination.HISTORY,
+                                        MobileDestination.SUMMARY,
+                                        MobileDestination.ACTIVE_LOCAL,
+                                        MobileDestination.ACTIVE_MIRROR,
+                                        -> MobileDestination.HOME
+                                        MobileDestination.HOME -> MobileDestination.HOME
+                                    }
+                                },
+                            ) {
+                                Text("Back")
+                            }
                         }
-                    }
-                },
-            )
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         when (destination) {
             MobileDestination.HOME -> HomeMobileScreen(
                 templates = templates,
+                recentWorkout = history.firstOrNull(),
                 pairedLabel = pairedLabel,
                 onOpenBuilder = {
                     builderSeedTemplate = selectedTemplateDetail
@@ -415,11 +434,15 @@ private fun MobileApp(
                     destination = MobileDestination.BUILDER
                 },
                 onOpenHistory = { destination = MobileDestination.HISTORY },
+                onSelectRecent = {
+                    selectedSummary = it
+                    destination = MobileDestination.SUMMARY
+                },
                 onSelectTemplate = { template ->
                     selectedTemplateDetail = template
                     destination = MobileDestination.TEMPLATE_DETAIL
                 },
-                onStartPhoneWorkout = ::requestPhoneWorkoutStart,
+                contentPadding = innerPadding,
             )
 
             MobileDestination.TEMPLATE_DETAIL -> selectedTemplateDetail?.let { template ->
@@ -430,6 +453,7 @@ private fun MobileApp(
                         builderSeedTemplate = template
                         destination = MobileDestination.BUILDER
                     },
+                    contentPadding = innerPadding,
                 )
             }
 
@@ -443,6 +467,7 @@ private fun MobileApp(
                     template.division?.let(library::setLastSelectedDivision)
                     requestPhoneWorkoutStart(template)
                 },
+                contentPadding = innerPadding,
             )
 
             MobileDestination.HISTORY -> HistoryMobileScreen(
@@ -451,10 +476,14 @@ private fun MobileApp(
                     selectedSummary = it
                     destination = MobileDestination.SUMMARY
                 },
+                contentPadding = innerPadding,
             )
 
             MobileDestination.SUMMARY -> selectedSummary?.let {
-                SummaryMobileScreen(workout = it)
+                SummaryMobileScreen(
+                    workout = it,
+                    contentPadding = innerPadding,
+                )
             }
 
             MobileDestination.ACTIVE_LOCAL -> currentLocalState()?.let { state ->
@@ -490,6 +519,7 @@ private fun MobileApp(
                         now = Instant.now()
                         finishLocalSession(forceFinish = true)
                     },
+                    contentPadding = innerPadding,
                 )
             }
 
@@ -504,6 +534,7 @@ private fun MobileApp(
                         )
                     },
                     onEnd = { syncCoordinator.sendCommand(WorkoutCommand.END) },
+                    contentPadding = innerPadding,
                 )
             }
         }
