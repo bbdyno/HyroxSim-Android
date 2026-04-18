@@ -54,7 +54,11 @@ class RealGarminBridge(context: Context) : GarminBridge,
 
     init {
         try {
-            ciq.initialize(appCtx, true, this)
+            // autoUI=false: otherwise the SDK tries to pop its own
+            // "install Garmin Connect" dialog with the application context,
+            // which throws BadTokenException on devices without the
+            // companion app. Our Settings screen handles messaging.
+            ciq.initialize(appCtx, false, this)
         } catch (e: Exception) {
             println("⚠️ GarminBridge init failed: $e")
         }

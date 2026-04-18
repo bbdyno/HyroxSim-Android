@@ -12,6 +12,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.bbdyno.hyroxsim.feature.active.ActiveWorkoutRoute
+import com.bbdyno.hyroxsim.feature.builder.BuilderRoute
 import com.bbdyno.hyroxsim.feature.history.HistoryRoute
 import com.bbdyno.hyroxsim.feature.home.HomeRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
@@ -43,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
 private enum class Tab(val label: String) {
     Home("홈"),
+    Builder("만들기"),
     History("기록"),
     Settings("설정"),
 }
@@ -61,6 +64,12 @@ private fun HyroxRootScaffold() {
                         onClick = { tab = Tab.Home },
                         label = { Text(Tab.Home.label) },
                         icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    )
+                    NavigationBarItem(
+                        selected = tab == Tab.Builder,
+                        onClick = { tab = Tab.Builder },
+                        label = { Text(Tab.Builder.label) },
+                        icon = { Icon(Icons.Default.Build, contentDescription = null) },
                     )
                     NavigationBarItem(
                         selected = tab == Tab.History,
@@ -90,6 +99,9 @@ private fun HyroxRootScaffold() {
                 Tab.Home -> HomeRoute(
                     modifier = Modifier.fillMaxSize().padding(inner),
                     onStartWorkout = { divisionRaw -> activeTemplateDivision = divisionRaw },
+                )
+                Tab.Builder -> BuilderRoute(
+                    modifier = Modifier.fillMaxSize().padding(inner),
                 )
                 Tab.History -> HistoryRoute(
                     modifier = Modifier.fillMaxSize().padding(inner),

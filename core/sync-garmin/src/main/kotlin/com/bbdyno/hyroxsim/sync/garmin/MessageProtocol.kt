@@ -20,6 +20,7 @@ object MessageProtocol {
         const val HELLO            = "hello"
         const val GOAL_SET         = "goal.set"
         const val TEMPLATE_UPSERT  = "template.upsert"
+        const val TEMPLATE_DELETE  = "template.delete"
         const val CMD_ADVANCE      = "cmd.advance"
         const val CMD_PAUSE        = "cmd.pause"
         const val CMD_RESUME       = "cmd.resume"
