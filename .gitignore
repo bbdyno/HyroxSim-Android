@@ -1,0 +1,23 @@
+# Android / Gradle
+*.iml
+.gradle/
+.idea/
+.kotlin/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.vscode/
+*.DS_Store
+
+# Binary deps (users drop these in manually)
+libs/*.aar
+libs/*.jar
+
+# Keys / signing
+*.jks
+*.keystore
+release-keystore.properties
