@@ -1,27 +1,17 @@
 # libs/
 
-외부에서 받은 `.aar` / `.jar`를 드롭하는 위치. gitignore됨.
+로컬 바이너리 드롭 위치. gitignore됨.
 
-## ConnectIQ-Android.aar (가민 워치 연동)
+## ConnectIQ Android SDK
 
-### 필요성
-`core:sync-garmin` 모듈의 Kotlin 코드는 `ConnectIQ Android SDK`를 참조합니다. 이 AAR이 없으면 빌드가 실패합니다.
+~~AAR을 여기에 드롭하세요~~ — **더 이상 불필요**.
 
-### 다운로드 절차
-
-1. https://developer.garmin.com/connect-iq/overview/ 가민 개발자 계정 로그인
-2. "Connect IQ Mobile SDK (Android)" 최신 버전 다운로드
-3. 압축 해제 → `ConnectIQ-Android.aar` 파일을 이 디렉토리에 복사
-4. `./gradlew :core:sync-garmin:build` 로 빌드 확인
-
-### 의존성 등록 방식
-
-`core/sync-garmin/build.gradle.kts`에서 `fileTree`로 자동 픽업:
+가민이 Connect IQ Android SDK를 **Maven Central**에 공식 배포하면서(`com.garmin.connectiq:ciq-companion-app-sdk`), `core/sync-garmin/build.gradle.kts`가 직접 의존성을 선언합니다:
 
 ```kotlin
-implementation(fileTree("../../libs") { include("*.aar") })
+api(libs.garmin.connectiq)   // 2.3.0
 ```
 
-### 주의사항
-- 가민 재배포 라이선스 이슈 피하기 위해 repo에 커밋 금지
-- 팀 CI에서는 Maven 사내 저장소 또는 Secrets 아티팩트 스토어로 주입
+참고: https://central.sonatype.com/artifact/com.garmin.connectiq/ciq-companion-app-sdk
+
+이 폴더는 만약 미래에 Maven Central에 없는 별도 바이너리 (예: OEM 파트너 확장)를 써야 할 때를 위해 예약해둡니다.

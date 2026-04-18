@@ -1,83 +1,173 @@
 package com.bbdyno.hyroxsim.sync.garmin
 
 import android.content.Context
+import com.garmin.android.connectiq.ConnectIQ
+import com.garmin.android.connectiq.IQApp
+import com.garmin.android.connectiq.IQDevice
+import com.garmin.android.connectiq.exception.InvalidStateException
+import com.garmin.android.connectiq.exception.ServiceUnavailableException
+import java.util.UUID
 
 /**
- * Transport abstraction over the Connect IQ Android SDK.
- *
- * The **real implementation** lives alongside `ConnectIQ-Android.aar`
- * once the developer drops it into `libs/`. See [RealGarminBridge] below
- * — the template code is deliberately behind a reflection guard so this
- * module compiles without the AAR present. When the AAR is added, swap
- * the factory in [provide] to `RealGarminBridge(context)`.
- *
- * Downstream layers (feature modules, app) depend only on this interface.
+ * Transport abstraction over the Connect IQ Android SDK. Downstream layers
+ * depend only on this interface so tests can substitute a [StubGarminBridge].
  */
 interface GarminBridge {
-    /** Open the Garmin Connect Mobile device picker. */
     fun requestDeviceSelection()
-
-    /** Transmit a v1 envelope (see [GarminMessageCodec]). */
     fun sendEnvelope(envelope: Map<String, Any?>)
-
     fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit)
     fun setOnConnectionChanged(handler: (Boolean) -> Unit)
-
-    /** Human-readable name of the currently paired device, or null. */
     val connectedDeviceName: String?
 
     companion object {
-        fun provide(context: Context): GarminBridge = StubGarminBridge(context)
+        fun provide(context: Context): GarminBridge = RealGarminBridge(context)
     }
 }
 
 /**
- * No-op implementation used before the AAR is wired up. Logs a single
- * warning on first interaction so nothing silently misbehaves.
+ * SDK-backed implementation. Lifecycle:
+ *   1. [initialize] starts the SDK; `onSdkReady` flips [isSdkReady] true.
+ *   2. [requestDeviceSelection] opens Garmin Connect Mobile's device picker.
+ *   3. On connect we register for app events against the hardcoded CIQ app
+ *      UUID (matches `../HyroxSim-Garmin/manifest.xml` applicationId).
+ *
+ * The Monkey C manifest stores the UUID without dashes; we expand it to
+ * the 8-4-4-4-12 form the SDK expects.
  */
-internal class StubGarminBridge(
-    @Suppress("unused") private val context: Context,
-) : GarminBridge {
+class RealGarminBridge(context: Context) : GarminBridge,
+    ConnectIQ.ConnectIQListener,
+    ConnectIQ.IQApplicationEventListener,
+    ConnectIQ.IQDeviceEventListener {
 
-    private var warned = false
+    private val ciq: ConnectIQ =
+        ConnectIQ.getInstance(context, ConnectIQ.IQConnectType.WIRELESS)
+    private val appCtx = context.applicationContext
+
+    private var connectedDevice: IQDevice? = null
+    private var trackedApp: IQApp? = null
+    private var isSdkReady: Boolean = false
+
     private var messageHandler: (Map<String, Any?>) -> Unit = {}
-    private var connHandler: (Boolean) -> Unit = {}
+    private var connectionHandler: (Boolean) -> Unit = {}
 
-    override val connectedDeviceName: String? = null
+    private val appUuid: UUID = UUID.fromString("ab20831c-3cc3-a8f6-b692-02dd7e0ca823")
 
-    override fun requestDeviceSelection() = warnOnce()
-    override fun sendEnvelope(envelope: Map<String, Any?>) = warnOnce()
+    init {
+        try {
+            ciq.initialize(appCtx, true, this)
+        } catch (e: Exception) {
+            println("⚠️ GarminBridge init failed: $e")
+        }
+    }
+
+    override val connectedDeviceName: String?
+        get() = connectedDevice?.friendlyName
+
+    override fun requestDeviceSelection() {
+        if (!isSdkReady) {
+            println("⚠️ GarminBridge: SDK not ready — is Garmin Connect Mobile installed?")
+            return
+        }
+        runCatching {
+            val paired = ciq.knownDevices ?: emptyList()
+            val first = paired.firstOrNull()
+            if (first != null) {
+                connect(first)
+            } else {
+                println("⚠️ GarminBridge: no paired devices. Open Garmin Connect Mobile and pair a watch first.")
+            }
+        }.onFailure { println("⚠️ GarminBridge discovery failed: $it") }
+    }
+
+    override fun sendEnvelope(envelope: Map<String, Any?>) {
+        val device = connectedDevice ?: run {
+            println("⚠️ GarminBridge: no connected device")
+            return
+        }
+        val app = trackedApp ?: run {
+            println("⚠️ GarminBridge: no tracked app")
+            return
+        }
+        runCatching {
+            ciq.sendMessage(device, app, envelope) { _, _, status ->
+                if (status != ConnectIQ.IQMessageStatus.SUCCESS) {
+                    println("⚠️ sendMessage non-success: $status")
+                }
+            }
+        }.onFailure { println("⚠️ sendMessage threw: $it") }
+    }
+
     override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {
         messageHandler = handler
     }
+
     override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {
-        connHandler = handler
+        connectionHandler = handler
     }
 
-    private fun warnOnce() {
-        if (warned) return
-        warned = true
-        println("⚠️ GarminBridge: ConnectIQ-Android.aar not linked. See libs/README.md")
+    // MARK: - ConnectIQListener
+
+    override fun onSdkReady() {
+        isSdkReady = true
+        runCatching {
+            val paired = ciq.knownDevices ?: emptyList()
+            paired.firstOrNull()?.let(::connect)
+        }
+    }
+
+    override fun onInitializeError(status: ConnectIQ.IQSdkErrorStatus?) {
+        isSdkReady = false
+        println("⚠️ GarminBridge init error: $status")
+    }
+
+    override fun onSdkShutDown() {
+        isSdkReady = false
+        connectionHandler(false)
+    }
+
+    // MARK: - IQDeviceEventListener
+
+    override fun onDeviceStatusChanged(device: IQDevice?, status: IQDevice.IQDeviceStatus?) {
+        val isConnected = status == IQDevice.IQDeviceStatus.CONNECTED
+        connectionHandler(isConnected)
+    }
+
+    // MARK: - IQApplicationEventListener
+
+    override fun onMessageReceived(
+        device: IQDevice?,
+        app: IQApp?,
+        messageData: MutableList<Any>?,
+        status: ConnectIQ.IQMessageStatus?,
+    ) {
+        if (status != ConnectIQ.IQMessageStatus.SUCCESS) return
+        val payload = messageData?.firstOrNull() as? Map<*, *> ?: return
+        @Suppress("UNCHECKED_CAST")
+        messageHandler(payload as Map<String, Any?>)
+    }
+
+    private fun connect(device: IQDevice) {
+        connectedDevice = device
+        try {
+            ciq.registerForDeviceEvents(device, this)
+        } catch (_: InvalidStateException) {
+        } catch (_: ServiceUnavailableException) {
+        }
+        val app = IQApp(appUuid.toString())
+        trackedApp = app
+        try {
+            ciq.registerForAppEvents(device, app, this)
+        } catch (_: InvalidStateException) {
+        } catch (_: ServiceUnavailableException) {
+        }
     }
 }
 
-/*
- * Template for the real SDK-backed bridge. Uncomment + compile after
- * adding the AAR:
- *
- * class RealGarminBridge(private val context: Context) : GarminBridge,
- *     com.garmin.android.connectiq.ConnectIQ.ConnectIQListener,
- *     com.garmin.android.connectiq.IQApp.IQAppEventListener,
- *     com.garmin.android.connectiq.IQDevice.IQDeviceEventListener
- * {
- *     private val ciq = com.garmin.android.connectiq.ConnectIQ.getInstance(
- *         context,
- *         com.garmin.android.connectiq.ConnectIQ.IQConnectType.WIRELESS
- *     )
- *     private val appUuid = java.util.UUID.fromString(
- *         "AB20831C-3CC3-A8F6-B692-02DD7E0CA823"
- *     )
- *     // ... wire up onSdkReady, registerForDeviceEvents, registerForAppEvents,
- *     //     sendMessage, onMessageReceived callbacks.
- * }
- */
+/** No-op implementation for tests. */
+class StubGarminBridge : GarminBridge {
+    override val connectedDeviceName: String? = null
+    override fun requestDeviceSelection() {}
+    override fun sendEnvelope(envelope: Map<String, Any?>) {}
+    override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {}
+    override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {}
+}

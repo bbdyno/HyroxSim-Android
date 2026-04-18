@@ -14,6 +14,7 @@ activity-compose = "1.9.2"
 core-ktx = "1.13.1"
 health-connect = "1.1.0-alpha07"
 location = "21.3.0"
+connectiq = "2.3.0"
 datastore = "1.1.1"
 junit = "4.13.2"
 androidx-junit = "1.2.1"
@@ -48,6 +49,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "location" }
+garmin-connectiq = { group = "com.garmin.connectiq", name = "ciq-companion-app-sdk", version.ref = "connectiq" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }

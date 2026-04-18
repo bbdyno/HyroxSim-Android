@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore)
 
-    // Connect IQ Android SDK (AAR). Dropped into ../../libs/ by the developer.
-    // See libs/README.md for provisioning instructions.
-    implementation(fileTree(mapOf("dir" to "../../libs", "include" to listOf("*.aar"))))
+    // Connect IQ Android SDK (AAR) via Maven Central. See
+    // https://central.sonatype.com/artifact/com.garmin.connectiq/ciq-companion-app-sdk
+    api(libs.garmin.connectiq)
 }
