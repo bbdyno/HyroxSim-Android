@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +61,7 @@ fun SummaryRoute(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
+        val context = LocalContext.current
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
@@ -71,7 +75,19 @@ fun SummaryRoute(
                 color = Color(0xFFFFD700),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
             )
+            ui.workout?.let { w ->
+                IconButton(onClick = {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, buildShareText(w))
+                    }
+                    context.startActivity(Intent.createChooser(intent, "Share"))
+                }) {
+                    Icon(Icons.Default.Share, contentDescription = "공유", tint = Color(0xFFFFD700))
+                }
+            }
         }
 
         if (ui.loading) {
@@ -289,4 +305,14 @@ private fun formatDeltaMs(ms: Long): String {
     val sign = if (ms >= 0) "+" else "-"
     val abs = if (ms >= 0) ms else -ms
     return sign + formatMs(abs)
+}
+
+private fun buildShareText(workout: CompletedWorkout): String = buildString {
+    appendLine("🏆 HyroxSim — ${workout.templateName}")
+    appendLine("Total: ${formatMs(workout.totalActiveDurationMs)}")
+    workout.averageHeartRate?.let { appendLine("Avg HR: $it bpm") }
+    appendLine("Distance: %.2f km".format(workout.totalDistanceMeters / 1000))
+    workout.averageRunPaceSecondsPerKm?.let { sec ->
+        appendLine("Avg pace: %d:%02d /km".format((sec / 60).toInt(), (sec % 60).toInt()))
+    }
 }
