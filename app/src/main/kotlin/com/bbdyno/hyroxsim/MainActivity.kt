@@ -4,6 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -101,12 +108,34 @@ private fun HyroxRootNav() {
             }
         },
     ) { inner ->
+        // Platform-standard push navigation: new screens slide in from the right,
+        // back-navigation reverses. Tab routes (HOME, SETTINGS) opt out so
+        // switching tabs is an instant swap like on a TabLayout.
+        val pushIn: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
+            { slideInHorizontally(tween(260)) { w -> w } }
+        val pushOut: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
+            { slideOutHorizontally(tween(260)) { w -> -w / 4 } }
+        val popIn: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
+            { slideInHorizontally(tween(260)) { w -> -w / 4 } }
+        val popOut: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
+            { slideOutHorizontally(tween(260)) { w -> w } }
+
         NavHost(
             navController = navController,
             startDestination = Route.HOME,
+            enterTransition = pushIn,
+            exitTransition = pushOut,
+            popEnterTransition = popIn,
+            popExitTransition = popOut,
             modifier = Modifier.fillMaxSize().padding(inner),
         ) {
-            composable(Route.HOME) {
+            composable(
+                route = Route.HOME,
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None },
+            ) {
                 HomeRoute(
                     onOpenDetail = { navController.navigate(Route.templateDetail(it)) },
                     onOpenBuilder = { navController.navigate(Route.BUILDER) },
@@ -114,7 +143,13 @@ private fun HyroxRootNav() {
                     onOpenSummary = { navController.navigate(Route.summary(it)) },
                 )
             }
-            composable(Route.SETTINGS) {
+            composable(
+                route = Route.SETTINGS,
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None },
+            ) {
                 SettingsRoute()
             }
             composable(
