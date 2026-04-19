@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,13 +103,13 @@ fun BuilderRoute(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.builder_back), tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
-            Text("Builder", color = Color(0xFFFFD700), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.builder_title), color = Color(0xFFFFD700), fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
             TextButton(onClick = vm::onResetToPreset) {
-                Text("Reset", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                Text(stringResource(R.string.builder_reset), color = Color(0xFFAAAAAA), fontSize = 12.sp)
             }
         }
 
@@ -117,7 +118,7 @@ fun BuilderRoute(
         OutlinedTextField(
             value = ui.name,
             onValueChange = vm::onNameChanged,
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.builder_name_label)) },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -129,7 +130,7 @@ fun BuilderRoute(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Text("DIVISION", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.builder_section_division), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             HyroxDivision.entries.forEach { d ->
                 FilterChip(
@@ -149,9 +150,9 @@ fun BuilderRoute(
         RoxZoneCard(enabled = ui.usesRoxZone, onToggle = vm::onRoxZoneToggled)
 
         // Editable logical segments (no ROX zones — materialised at save time)
-        Text("SEGMENTS", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.builder_section_segments), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Text(
-            "${ui.logicalSegments.size} logical · ${previewSegments.size} total with ROX zones",
+            "${ui.logicalSegments.size} · ${previewSegments.size}",
             color = Color(0xFF666666),
             fontSize = 11.sp,
         )
@@ -179,7 +180,7 @@ fun BuilderRoute(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Add Run")
+                Text(stringResource(R.string.builder_add_run))
             }
             OutlinedButton(
                 onClick = { addStationDialog = true },
@@ -187,7 +188,7 @@ fun BuilderRoute(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Add Station")
+                Text(stringResource(R.string.builder_add_station))
             }
         }
 
@@ -211,7 +212,7 @@ fun BuilderRoute(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                if (ui.saving) "Saving…" else "Save + Sync to Garmin",
+                if (ui.saving) stringResource(R.string.builder_saving) else stringResource(R.string.builder_save),
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -219,13 +220,13 @@ fun BuilderRoute(
         ui.savedMessage?.let { msg ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(msg, color = Color(0xFFAAAAAA), fontSize = 12.sp, modifier = Modifier.weight(1f))
-                TextButton(onClick = vm::clearMessage) { Text("Close", color = Color(0xFFFFD700)) }
+                TextButton(onClick = vm::clearMessage) { Text(stringResource(R.string.builder_close), color = Color(0xFFFFD700)) }
             }
         }
 
         if (saved.isNotEmpty()) {
             HorizontalDivider(color = Color(0xFF222222), modifier = Modifier.padding(top = 12.dp))
-            Text("SAVED", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.builder_section_saved), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             saved.forEach { t ->
                 Surface(
                     color = Color(0xFF0C0C0C),
@@ -240,13 +241,16 @@ fun BuilderRoute(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(t.name, fontWeight = FontWeight.SemiBold)
                             Text(
-                                "${t.segments.size} segments · ROX ${if (t.usesRoxZone) "on" else "off"}",
+                                if (t.usesRoxZone)
+                                    stringResource(R.string.builder_template_segments_on, t.segments.size)
+                                else
+                                    stringResource(R.string.builder_template_segments_off, t.segments.size),
                                 color = Color(0xFF888888),
                                 fontSize = 12.sp,
                             )
                         }
                         TextButton(onClick = { vm.delete(t) }) {
-                            Text("Delete", color = Color(0xFFFF3B30))
+                            Text(stringResource(R.string.builder_delete), color = Color(0xFFFF3B30))
                         }
                     }
                 }
@@ -272,9 +276,9 @@ private fun EditableSegmentRow(
         SegmentType.RoxZone -> Color(0xFFFF9500)
     }
     val label = when (segment.type) {
-        SegmentType.Run -> "Run ${segment.distanceMeters?.toInt() ?: 1000}m"
-        SegmentType.Station -> segment.stationKind?.displayName ?: "Station"
-        SegmentType.RoxZone -> "ROX Zone"
+        SegmentType.Run -> stringResource(R.string.builder_segment_run, segment.distanceMeters?.toInt() ?: 1000)
+        SegmentType.Station -> segment.stationKind?.displayName ?: stringResource(R.string.builder_segment_station_fallback)
+        SegmentType.RoxZone -> stringResource(R.string.builder_segment_rox)
     }
     Surface(
         color = Color(0xFF0C0C0C),
@@ -312,21 +316,21 @@ private fun EditableSegmentRow(
             IconButton(onClick = onUp, enabled = canMoveUp) {
                 Icon(
                     Icons.Default.KeyboardArrowUp,
-                    contentDescription = "위로",
+                    contentDescription = stringResource(R.string.builder_row_move_up),
                     tint = if (canMoveUp) Color(0xFFAAAAAA) else Color(0xFF333333),
                 )
             }
             IconButton(onClick = onDown, enabled = canMoveDown) {
                 Icon(
                     Icons.Default.KeyboardArrowDown,
-                    contentDescription = "아래로",
+                    contentDescription = stringResource(R.string.builder_row_move_down),
                     tint = if (canMoveDown) Color(0xFFAAAAAA) else Color(0xFF333333),
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "삭제",
+                    contentDescription = stringResource(R.string.builder_row_delete),
                     tint = Color(0xFFFF3B30),
                 )
             }
@@ -342,11 +346,11 @@ private fun StationPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = Color(0xFFFFD700)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.builder_dialog_cancel), color = Color(0xFFFFD700)) }
         },
         containerColor = Color(0xFF0C0C0C),
         title = {
-            Text("Choose Station", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.builder_dialog_choose_station), color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -387,9 +391,9 @@ private fun StatsCard(template: WorkoutTemplate) {
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            StatColumn(label = "STATIONS", value = stationCount.toString())
-            StatColumn(label = "RUN", value = "%.1f km".format(runDistanceKm))
-            StatColumn(label = "EST. TIME", value = formatSec(estSec))
+            StatColumn(label = stringResource(R.string.builder_stat_stations), value = stationCount.toString())
+            StatColumn(label = stringResource(R.string.builder_stat_run), value = stringResource(R.string.builder_stat_run_value, runDistanceKm))
+            StatColumn(label = stringResource(R.string.builder_stat_est_time), value = formatSec(estSec))
         }
     }
 }
@@ -421,10 +425,10 @@ private fun RoxZoneCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("ROX Zone", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.builder_rox_label), fontWeight = FontWeight.SemiBold)
                 Text(
-                    if (enabled) "Insert transition between run ↔ station"
-                    else "Direct run → station, no transition",
+                    if (enabled) stringResource(R.string.builder_rox_on)
+                    else stringResource(R.string.builder_rox_off),
                     color = Color(0xFF888888),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),

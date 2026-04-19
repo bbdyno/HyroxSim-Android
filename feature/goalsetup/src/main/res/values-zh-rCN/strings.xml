@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="goal_back">返回</string>
+    <string name="goal_title">目标</string>
+    <string name="goal_loading">加载中…</string>
+    <string name="goal_unknown_tier">—</string>
+    <string name="goal_finish_time">目标完成时间</string>
+    <string name="goal_slider_min">30:00</string>
+    <string name="goal_slider_max">2:30:00</string>
+    <string name="goal_per_station">各工作站 (分桶均值)</string>
+    <string name="goal_per_segment">分段预测</string>
+    <string name="goal_segment_run">跑步</string>
+    <string name="goal_segment_rox">ROX</string>
+    <string name="goal_segment_station_fallback">工作站</string>
+    <string name="goal_more_segments">+%1$d 个分段</string>
+    <string name="goal_pairing_connected">手表已连接 — 保存时将同步</string>
+    <string name="goal_pairing_missing">手表未配对 — 仅本地保存</string>
+    <string name="goal_save">保存</string>
+    <string name="goal_save_sync">保存 + 同步至 Garmin</string>
+    <string name="goal_saving">保存中…</string>
+    <string name="goal_tier_badge_percentile">前 %1$s%%</string>
+    <string name="goal_tier_badge_athletes">共 %1$s 位选手</string>
+    <string name="goal_pace_label">跑步配速</string>
+    <string name="goal_pace_value">%1$d:%2$02d /km</string>
+    <string name="goal_pace_total">跑步总计 (8.7km)</string>
+    <string name="goal_pace_total_value">%1$d:%2$02d</string>
+</resources>

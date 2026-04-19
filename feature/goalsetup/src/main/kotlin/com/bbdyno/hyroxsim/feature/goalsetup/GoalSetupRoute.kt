@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,21 +74,23 @@ fun GoalSetupRoute(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.goal_back), tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
-            Text("Goal", color = Color(0xFFFFD700), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.goal_title), color = Color(0xFFFFD700), fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
 
         val template = ui.template
         if (template == null) {
-            Text("Loading…", color = Color(0xFF888888))
+            Text(stringResource(R.string.goal_loading), color = Color(0xFF888888))
             return@Column
         }
 
+        val unknownTier = stringResource(R.string.goal_unknown_tier)
+
         // TIER / PERCENTILE (only when plan is available — requires division)
         ui.plan?.let { plan ->
-            TierBadge(tier = ui.tier ?: "—", plan = plan)
+            TierBadge(tier = ui.tier ?: unknownTier, plan = plan)
         }
 
         // TOTAL TARGET + slider
@@ -99,7 +102,7 @@ fun GoalSetupRoute(
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    "GOAL FINISH TIME",
+                    stringResource(R.string.goal_finish_time),
                     color = Color(0xFFFFD700),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -130,9 +133,9 @@ fun GoalSetupRoute(
                     ),
                 )
                 Row {
-                    Text("30:00", color = Color(0xFF666666), fontSize = 11.sp)
+                    Text(stringResource(R.string.goal_slider_min), color = Color(0xFF666666), fontSize = 11.sp)
                     Spacer(Modifier.weight(1f))
-                    Text("2:30:00", color = Color(0xFF666666), fontSize = 11.sp)
+                    Text(stringResource(R.string.goal_slider_max), color = Color(0xFF666666), fontSize = 11.sp)
                 }
             }
         }
@@ -140,7 +143,7 @@ fun GoalSetupRoute(
         // PER-STATION PROJECTION (data-driven averages from bucket)
         ui.plan?.let { plan ->
             Text(
-                "PER-STATION (avg from bucket)",
+                stringResource(R.string.goal_per_station),
                 color = Color(0xFFFFD700),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
@@ -157,7 +160,7 @@ fun GoalSetupRoute(
 
         // PER-SEGMENT PROJECTION (runs + rox + stations mapped onto template)
         Text(
-            "PER-SEGMENT PROJECTION",
+            stringResource(R.string.goal_per_segment),
             color = Color(0xFFFFD700),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -172,9 +175,9 @@ fun GoalSetupRoute(
                     SegmentType.Station -> Color(0xFFFFD700)
                 }
                 val label = when (seg.type) {
-                    SegmentType.Run -> "Run"
-                    SegmentType.RoxZone -> "ROX"
-                    SegmentType.Station -> seg.stationKind?.displayName ?: "Station"
+                    SegmentType.Run -> stringResource(R.string.goal_segment_run)
+                    SegmentType.RoxZone -> stringResource(R.string.goal_segment_rox)
+                    SegmentType.Station -> seg.stationKind?.displayName ?: stringResource(R.string.goal_segment_station_fallback)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -197,7 +200,7 @@ fun GoalSetupRoute(
             }
             if (ui.perSegmentSeconds.size > 12) {
                 Text(
-                    "+${ui.perSegmentSeconds.size - 12} more segments",
+                    stringResource(R.string.goal_more_segments, ui.perSegmentSeconds.size - 12),
                     color = Color(0xFF555555),
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 4.dp),
@@ -209,8 +212,8 @@ fun GoalSetupRoute(
 
         // PAIRING STATUS HINT
         Text(
-            if (ui.isPaired) "Watch connected — goal will sync on save"
-            else "Watch not paired — saving locally only",
+            if (ui.isPaired) stringResource(R.string.goal_pairing_connected)
+            else stringResource(R.string.goal_pairing_missing),
             color = if (ui.isPaired) Color(0xFF30D158) else Color(0xFF888888),
             fontSize = 11.sp,
         )
@@ -225,9 +228,9 @@ fun GoalSetupRoute(
             modifier = Modifier.fillMaxWidth(),
         ) {
             val label = when {
-                ui.saving -> "Saving…"
-                ui.isPaired -> "Save + Sync to Garmin"
-                else -> "Save"
+                ui.saving -> stringResource(R.string.goal_saving)
+                ui.isPaired -> stringResource(R.string.goal_save_sync)
+                else -> stringResource(R.string.goal_save)
             }
             Text(label, fontWeight = FontWeight.Bold)
         }
@@ -262,13 +265,13 @@ private fun TierBadge(tier: String, plan: PacePlan) {
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Top ${"%.1f".format(plan.percentile)}%",
+                    stringResource(R.string.goal_tier_badge_percentile, "%.1f".format(plan.percentile)),
                     color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    "of ${formatThousands(plan.totalAthletes)} athletes",
+                    stringResource(R.string.goal_tier_badge_athletes, formatThousands(plan.totalAthletes)),
                     color = Color(0xFF888888),
                     fontSize = 11.sp,
                 )
@@ -307,18 +310,18 @@ private fun PaceFooter(plan: PacePlan) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text("RUN PACE", color = Color(0xFF888888), fontSize = 10.sp)
+            Text(stringResource(R.string.goal_pace_label), color = Color(0xFF888888), fontSize = 10.sp)
             Text(
-                "%d:%02d /km".format(kmMin, kmSec),
+                stringResource(R.string.goal_pace_value, kmMin, kmSec),
                 color = Color.White,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text("RUN TOTAL (8.7km)", color = Color(0xFF888888), fontSize = 10.sp)
+            Text(stringResource(R.string.goal_pace_total), color = Color(0xFF888888), fontSize = 10.sp)
             Text(
-                "%d:%02d".format(rMin, rSec),
+                stringResource(R.string.goal_pace_total_value, rMin, rSec),
                 color = Color.White,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,

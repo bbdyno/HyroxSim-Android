@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="goal_back">Back</string>
+    <string name="goal_title">Goal</string>
+    <string name="goal_loading">Loading…</string>
+    <string name="goal_unknown_tier">—</string>
+    <string name="goal_finish_time">GOAL FINISH TIME</string>
+    <string name="goal_slider_min">30:00</string>
+    <string name="goal_slider_max">2:30:00</string>
+    <string name="goal_per_station">PER-STATION (avg from bucket)</string>
+    <string name="goal_per_segment">PER-SEGMENT PROJECTION</string>
+    <string name="goal_segment_run">Run</string>
+    <string name="goal_segment_rox">ROX</string>
+    <string name="goal_segment_station_fallback">Station</string>
+    <string name="goal_more_segments">+%1$d more segments</string>
+    <string name="goal_pairing_connected">Watch connected — goal will sync on save</string>
+    <string name="goal_pairing_missing">Watch not paired — saving locally only</string>
+    <string name="goal_save">Save</string>
+    <string name="goal_save_sync">Save + Sync to Garmin</string>
+    <string name="goal_saving">Saving…</string>
+    <string name="goal_tier_badge_percentile">Top %1$s%%</string>
+    <string name="goal_tier_badge_athletes">of %1$s athletes</string>
+    <string name="goal_pace_label">RUN PACE</string>
+    <string name="goal_pace_value">%1$d:%2$02d /km</string>
+    <string name="goal_pace_total">RUN TOTAL (8.7km)</string>
+    <string name="goal_pace_total_value">%1$d:%2$02d</string>
+</resources>

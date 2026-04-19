@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="goal_back">뒤로</string>
+    <string name="goal_title">목표</string>
+    <string name="goal_loading">불러오는 중…</string>
+    <string name="goal_unknown_tier">—</string>
+    <string name="goal_finish_time">목표 완료 시간</string>
+    <string name="goal_slider_min">30:00</string>
+    <string name="goal_slider_max">2:30:00</string>
+    <string name="goal_per_station">스테이션별 (버킷 평균)</string>
+    <string name="goal_per_segment">세그먼트별 예측</string>
+    <string name="goal_segment_run">런</string>
+    <string name="goal_segment_rox">ROX</string>
+    <string name="goal_segment_station_fallback">스테이션</string>
+    <string name="goal_more_segments">+%1$d 세그먼트 더</string>
+    <string name="goal_pairing_connected">워치 연결됨 — 저장 시 동기화됩니다</string>
+    <string name="goal_pairing_missing">워치 미연결 — 로컬에만 저장됩니다</string>
+    <string name="goal_save">저장</string>
+    <string name="goal_save_sync">저장 + 가민 동기화</string>
+    <string name="goal_saving">저장 중…</string>
+    <string name="goal_tier_badge_percentile">상위 %1$s%%</string>
+    <string name="goal_tier_badge_athletes">선수 %1$s명 기준</string>
+    <string name="goal_pace_label">런 페이스</string>
+    <string name="goal_pace_value">%1$d:%2$02d /km</string>
+    <string name="goal_pace_total">런 총합 (8.7km)</string>
+    <string name="goal_pace_total_value">%1$d:%2$02d</string>
+</resources>

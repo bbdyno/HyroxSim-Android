@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="builder_back">Back</string>
+    <string name="builder_title">Builder</string>
+    <string name="builder_reset">Reset</string>
+    <string name="builder_name_label">Name</string>
+    <string name="builder_section_division">DIVISION</string>
+    <string name="builder_section_segments">SEGMENTS</string>
+    <string name="builder_add_run">Add Run</string>
+    <string name="builder_add_station">Add Station</string>
+    <string name="builder_save">Save + Sync to Garmin</string>
+    <string name="builder_saving">Saving…</string>
+    <string name="builder_close">Close</string>
+    <string name="builder_section_saved">SAVED</string>
+    <string name="builder_template_segments_on">%1$d segments · ROX on</string>
+    <string name="builder_template_segments_off">%1$d segments · ROX off</string>
+    <string name="builder_delete">Delete</string>
+    <string name="builder_segment_run">Run %1$dm</string>
+    <string name="builder_segment_station_fallback">Station</string>
+    <string name="builder_segment_rox">ROX Zone</string>
+    <string name="builder_row_move_up">Move up</string>
+    <string name="builder_row_move_down">Move down</string>
+    <string name="builder_row_delete">Delete</string>
+    <string name="builder_dialog_cancel">Cancel</string>
+    <string name="builder_dialog_choose_station">Choose Station</string>
+    <string name="builder_stat_stations">STATIONS</string>
+    <string name="builder_stat_run">RUN</string>
+    <string name="builder_stat_run_value">%1$.1f km</string>
+    <string name="builder_stat_est_time">EST. TIME</string>
+    <string name="builder_rox_label">ROX Zone</string>
+    <string name="builder_rox_on">Insert transition between run ↔ station</string>
+    <string name="builder_rox_off">Direct run → station, no transition</string>
+</resources>

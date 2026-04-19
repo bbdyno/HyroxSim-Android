@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="builder_back">戻る</string>
+    <string name="builder_title">ビルダー</string>
+    <string name="builder_reset">リセット</string>
+    <string name="builder_name_label">名前</string>
+    <string name="builder_section_division">ディビジョン</string>
+    <string name="builder_section_segments">セグメント</string>
+    <string name="builder_add_run">ランを追加</string>
+    <string name="builder_add_station">ステーションを追加</string>
+    <string name="builder_save">保存 + Garminへ同期</string>
+    <string name="builder_saving">保存中…</string>
+    <string name="builder_close">閉じる</string>
+    <string name="builder_section_saved">保存済み</string>
+    <string name="builder_template_segments_on">セグメント %1$d · ROX オン</string>
+    <string name="builder_template_segments_off">セグメント %1$d · ROX オフ</string>
+    <string name="builder_delete">削除</string>
+    <string name="builder_segment_run">ラン %1$dm</string>
+    <string name="builder_segment_station_fallback">ステーション</string>
+    <string name="builder_segment_rox">ROX Zone</string>
+    <string name="builder_row_move_up">上へ</string>
+    <string name="builder_row_move_down">下へ</string>
+    <string name="builder_row_delete">削除</string>
+    <string name="builder_dialog_cancel">キャンセル</string>
+    <string name="builder_dialog_choose_station">ステーション選択</string>
+    <string name="builder_stat_stations">ステーション</string>
+    <string name="builder_stat_run">ラン</string>
+    <string name="builder_stat_run_value">%1$.1f km</string>
+    <string name="builder_stat_est_time">推定時間</string>
+    <string name="builder_rox_label">ROX Zone</string>
+    <string name="builder_rox_on">ランとステーション間にトランジションを挿入</string>
+    <string name="builder_rox_off">ラン → ステーション直行 (トランジションなし)</string>
+</resources>
