@@ -56,7 +56,6 @@ fun HomeRoute(
     onOpenDetail: (routeKey: String) -> Unit,
     onOpenBuilder: () -> Unit,
     onOpenHistory: () -> Unit,
-    onOpenSettings: () -> Unit,
     onOpenSummary: (workoutId: String) -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
@@ -67,7 +66,7 @@ fun HomeRoute(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { HeaderRow(onOpenSettings = onOpenSettings) }
+            item { HeaderRow() }
 
             ui.mostRecent?.let { recent ->
                 item { RecentCard(summary = recent, onClick = { onOpenSummary(recent.id) }) }
@@ -98,7 +97,7 @@ fun HomeRoute(
 }
 
 @Composable
-private fun HeaderRow(onOpenSettings: () -> Unit) {
+private fun HeaderRow() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth(),
@@ -116,9 +115,6 @@ private fun HeaderRow(onOpenSettings: () -> Unit) {
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 2.dp),
             )
-        }
-        IconButton(onClick = onOpenSettings) {
-            Icon(Icons.Default.Settings, contentDescription = "설정", tint = Color(0xFFAAAAAA))
         }
     }
 }

@@ -53,7 +53,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsRoute(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
     vm: SettingsViewModel = hiltViewModel(),
 ) {
     Column(
@@ -64,14 +64,17 @@ fun SettingsRoute(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+                }
             }
             Text(
-                text = "설정",
+                text = "Settings",
                 color = Color(0xFFFFD700),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                modifier = if (onBack == null) Modifier.padding(start = 4.dp, top = 8.dp) else Modifier,
             )
         }
         HorizontalDivider(color = Color(0xFF222222))

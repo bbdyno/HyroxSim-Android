@@ -6,21 +6,33 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bbdyno.hyroxsim.feature.active.ActiveWorkoutRoute
 import com.bbdyno.hyroxsim.feature.builder.BuilderRoute
+import com.bbdyno.hyroxsim.feature.goalsetup.GoalSetupRoute
 import com.bbdyno.hyroxsim.feature.history.HistoryRoute
 import com.bbdyno.hyroxsim.feature.home.HomeRoute
 import com.bbdyno.hyroxsim.feature.home.TemplateDetailRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
-import com.bbdyno.hyroxsim.feature.goalsetup.GoalSetupRoute
 import com.bbdyno.hyroxsim.feature.summary.SummaryRoute
 import com.bbdyno.hyroxsim.nav.Route
 import com.bbdyno.hyroxsim.ui.theme.HyroxTheme
@@ -40,14 +52,55 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Single NavController + push/pop stack — matches iOS UINavigationController
- * UX. Home is root; Builder/History/Settings push on top. Active workout
- * and summary are full-screen pushed destinations.
+ * Two-tab root (Home / Settings) with push destinations layered on top.
+ * iOS-parity: tab bar replaces the old "settings gear" button; pushed
+ * screens (Detail, Builder, Goal, Active, Summary, History) hide the bar.
  */
 @Composable
 private fun HyroxRootNav() {
     val navController = rememberNavController()
-    Scaffold { inner ->
+    val backStack by navController.currentBackStackEntryAsState()
+    val currentRoute = backStack?.destination?.route
+
+    val showBottomBar = currentRoute == Route.HOME || currentRoute == Route.SETTINGS
+
+    Scaffold(
+        containerColor = Color.Black,
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar(containerColor = Color(0xFF0A0A0A)) {
+                    listOf(
+                        Triple(Route.HOME, "Home", Icons.Default.Home),
+                        Triple(Route.SETTINGS, "Settings", Icons.Default.Settings),
+                    ).forEach { (route, label, icon) ->
+                        NavigationBarItem(
+                            selected = currentRoute == route,
+                            icon = { Icon(icon, contentDescription = label) },
+                            label = { Text(label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.Black,
+                                selectedTextColor = Color(0xFFFFD700),
+                                indicatorColor = Color(0xFFFFD700),
+                                unselectedIconColor = Color(0xFF888888),
+                                unselectedTextColor = Color(0xFF888888),
+                            ),
+                            onClick = {
+                                if (currentRoute != route) {
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        },
+    ) { inner ->
         NavHost(
             navController = navController,
             startDestination = Route.HOME,
@@ -58,9 +111,11 @@ private fun HyroxRootNav() {
                     onOpenDetail = { navController.navigate(Route.templateDetail(it)) },
                     onOpenBuilder = { navController.navigate(Route.BUILDER) },
                     onOpenHistory = { navController.navigate(Route.HISTORY) },
-                    onOpenSettings = { navController.navigate(Route.SETTINGS) },
                     onOpenSummary = { navController.navigate(Route.summary(it)) },
                 )
+            }
+            composable(Route.SETTINGS) {
+                SettingsRoute()
             }
             composable(
                 route = Route.TEMPLATE_DETAIL,
@@ -71,7 +126,6 @@ private fun HyroxRootNav() {
                     routeKey = routeKey,
                     onBack = { navController.popBackStack() },
                     onStart = { t ->
-                        // Built-in preset → activeWorkout(divisionRaw); saved → activeTemplate(id).
                         if (t.isBuiltIn) {
                             val raw = t.division?.raw
                             if (raw != null) navController.navigate(Route.activeWorkout(raw))
@@ -90,9 +144,6 @@ private fun HyroxRootNav() {
                     onBack = { navController.popBackStack() },
                     onOpenSummary = { navController.navigate(Route.summary(it)) },
                 )
-            }
-            composable(Route.SETTINGS) {
-                SettingsRoute(onBack = { navController.popBackStack() })
             }
             composable(
                 route = Route.ACTIVE_WORKOUT,
