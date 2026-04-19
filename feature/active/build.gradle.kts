@@ -21,6 +21,7 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:persistence"))
+    implementation(project(":core:sensors"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.coroutines.android)

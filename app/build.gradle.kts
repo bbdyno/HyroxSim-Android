@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:persistence"))
     implementation(project(":core:sync-garmin"))
+    implementation(project(":core:sensors"))
     implementation(project(":feature:home"))
     implementation(project(":feature:active"))
     implementation(project(":feature:history"))

@@ -99,6 +99,8 @@ fun ActiveWorkoutRoute(
 
             GoalCard(ui = ui)
 
+            SensorRow(ui = ui)
+
             ui.nextLabel?.let {
                 Text(
                     "→ $it",
@@ -168,6 +170,57 @@ private fun GoalRow(label: String, target: Long, deltaMs: Long) {
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
         )
+    }
+}
+
+@Composable
+private fun SensorRow(ui: ActiveWorkoutUiState) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp),
+    ) {
+        SensorMetric(
+            label = "HR",
+            value = ui.currentHr?.let { "$it" } ?: "—",
+            unit = "bpm",
+            modifier = Modifier.weight(1f),
+        )
+        SensorMetric(
+            label = "DIST",
+            value = "%.2f".format(ui.currentDistanceMeters / 1000),
+            unit = "km",
+            modifier = Modifier.weight(1f),
+        )
+        SensorMetric(
+            label = "PACE",
+            value = ui.currentPaceSecondsPerKm?.let { sec ->
+                "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())
+            } ?: "—",
+            unit = "/km",
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun SensorMetric(
+    label: String,
+    value: String,
+    unit: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
+        Text(label, color = Color(0xFFFFD700), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text(
+            value,
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(unit, color = Color(0xFF666666), fontSize = 10.sp)
     }
 }
 

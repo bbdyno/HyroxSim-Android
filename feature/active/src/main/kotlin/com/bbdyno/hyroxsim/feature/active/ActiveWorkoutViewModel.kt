@@ -1,6 +1,7 @@
 package com.bbdyno.hyroxsim.feature.active
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.bbdyno.hyroxsim.core.domain.EngineState
 import com.bbdyno.hyroxsim.core.domain.HyroxDivision
@@ -13,7 +14,10 @@ import com.bbdyno.hyroxsim.core.domain.WorkoutTemplate
 import com.bbdyno.hyroxsim.core.persistence.repository.GoalRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutRepository
+import com.bbdyno.hyroxsim.core.sensors.HeartRateSource
+import com.bbdyno.hyroxsim.core.sensors.LocationSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,20 +38,29 @@ data class ActiveWorkoutUiState(
     val totalTargetMs: Long = 0,
     val segmentDeltaMs: Long = 0,
     val totalDeltaMs: Long = 0,
+    val currentHr: Int? = null,
+    val currentDistanceMeters: Double = 0.0,
+    val currentPaceSecondsPerKm: Double? = null,
     val finished: Boolean = false,
     val savedWorkoutId: String? = null,
 )
 
 @HiltViewModel
 class ActiveWorkoutViewModel @Inject constructor(
+    application: Application,
     private val repository: WorkoutRepository,
     private val templates: TemplateRepository,
     private val goals: GoalRepository,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private var engine: WorkoutEngine? = null
     private var perSegmentTargetsMs: List<Long> = emptyList()
     private var totalTargetMs: Long = 0
+    private var locationJob: Job? = null
+    private var hrJob: Job? = null
+
+    private val locationSource by lazy { LocationSource(getApplication()) }
+    private val hrSource by lazy { HeartRateSource(getApplication()) }
 
     private val _ui = MutableStateFlow(ActiveWorkoutUiState())
     val ui: StateFlow<ActiveWorkoutUiState> = _ui.asStateFlow()
@@ -75,7 +88,31 @@ class ActiveWorkoutViewModel @Inject constructor(
             val eng = WorkoutEngine(template)
             engine = eng
             eng.start(nowMs())
+            startSensorCollection()
             viewModelScope.launch { tickLoop() }
+        }
+    }
+
+    private fun startSensorCollection() {
+        val eng = engine ?: return
+        // Location — continuous flow, engine filters by segment type.
+        if (locationSource.hasPermission()) {
+            locationJob = viewModelScope.launch {
+                locationSource.samples().collect { sample ->
+                    eng.ingestLocation(sample)
+                }
+            }
+        }
+        // Heart rate — Health Connect has no live stream, poll every 3s.
+        hrJob = viewModelScope.launch {
+            while (!eng.isFinished) {
+                runCatching { hrSource.latestSample(windowSeconds = 10) }
+                    .getOrNull()
+                    ?.let { sample ->
+                        eng.ingestHeartRate(sample.timestampEpochMs, sample.bpm)
+                    }
+                delay(3_000)
+            }
         }
     }
 
@@ -99,6 +136,10 @@ class ActiveWorkoutViewModel @Inject constructor(
         } else {
             totalTargetMs
         }
+        val measurements = eng.liveMeasurementsSnapshot
+        val currentHr = measurements.heartRateSamples.lastOrNull()?.bpm
+        val currentDist = measurements.distanceMeters
+        val currentPace = measurements.averagePaceSecondsPerKm(segElapsed / 1000.0)
         _ui.value = ActiveWorkoutUiState(
             engineStateLabel = eng.state.label,
             currentSegmentIndex = idx,
@@ -111,6 +152,9 @@ class ActiveWorkoutViewModel @Inject constructor(
             totalTargetMs = totalTargetMs,
             segmentDeltaMs = segElapsed - segTarget,
             totalDeltaMs = totElapsed - cumulativeTarget,
+            currentHr = currentHr,
+            currentDistanceMeters = currentDist,
+            currentPaceSecondsPerKm = currentPace,
             finished = eng.isFinished,
             savedWorkoutId = _ui.value.savedWorkoutId,
         )
@@ -128,6 +172,8 @@ class ActiveWorkoutViewModel @Inject constructor(
     fun onEnd(onPersisted: (String) -> Unit) {
         val eng = engine ?: return
         eng.finish(nowMs())
+        locationJob?.cancel()
+        hrJob?.cancel()
         viewModelScope.launch {
             val completed = eng.makeCompletedWorkout(source = WorkoutSource.Manual)
             runCatching { repository.save(completed) }
@@ -135,6 +181,12 @@ class ActiveWorkoutViewModel @Inject constructor(
             _ui.value = _ui.value.copy(savedWorkoutId = completed.id)
             onPersisted(completed.id)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        locationJob?.cancel()
+        hrJob?.cancel()
     }
 
     private fun labelFor(segment: WorkoutSegment): String = when (segment.type) {
