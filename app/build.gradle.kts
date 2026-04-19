@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":feature:settings"))
     implementation(project(":feature:builder"))
     implementation(project(":feature:summary"))
+    implementation(project(":feature:goalsetup"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

@@ -19,6 +19,7 @@ import com.bbdyno.hyroxsim.feature.builder.BuilderRoute
 import com.bbdyno.hyroxsim.feature.history.HistoryRoute
 import com.bbdyno.hyroxsim.feature.home.HomeRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
+import com.bbdyno.hyroxsim.feature.goalsetup.GoalSetupRoute
 import com.bbdyno.hyroxsim.feature.summary.SummaryRoute
 import com.bbdyno.hyroxsim.nav.Route
 import com.bbdyno.hyroxsim.ui.theme.HyroxTheme
@@ -91,6 +92,16 @@ private fun HyroxRootNav() {
                 ActiveWorkoutRoute(
                     templateId = templateId,
                     onFinished = { navController.popBackStack(Route.HOME, inclusive = false) },
+                )
+            }
+            composable(
+                route = Route.GOAL_SETUP,
+                arguments = listOf(navArgument("templateId") { type = NavType.StringType }),
+            ) { backStack ->
+                val templateId = backStack.arguments?.getString("templateId") ?: return@composable
+                GoalSetupRoute(
+                    templateId = templateId,
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(
