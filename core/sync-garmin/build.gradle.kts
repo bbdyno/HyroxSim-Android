@@ -32,4 +32,7 @@ dependencies {
     // Connect IQ Android SDK (AAR) via Maven Central. See
     // https://central.sonatype.com/artifact/com.garmin.connectiq/ciq-companion-app-sdk
     api(libs.garmin.connectiq)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

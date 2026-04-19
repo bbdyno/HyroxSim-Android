@@ -14,10 +14,13 @@ import java.util.UUID
  */
 interface GarminBridge {
     fun requestDeviceSelection()
-    fun sendEnvelope(envelope: Map<String, Any?>)
+    /** Returns true when the envelope was accepted for delivery (device connected, app tracked). */
+    fun sendEnvelope(envelope: Map<String, Any?>): Boolean
     fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit)
     fun setOnConnectionChanged(handler: (Boolean) -> Unit)
     val connectedDeviceName: String?
+    /** True when a paired watch is currently connected — gate for all push flows. */
+    val isPaired: Boolean
 
     companion object {
         fun provide(context: Context): GarminBridge = RealGarminBridge(context)
@@ -67,6 +70,9 @@ class RealGarminBridge(context: Context) : GarminBridge,
     override val connectedDeviceName: String?
         get() = connectedDevice?.friendlyName
 
+    override val isPaired: Boolean
+        get() = connectedDevice != null && trackedApp != null
+
     override fun requestDeviceSelection() {
         if (!isSdkReady) {
             println("⚠️ GarminBridge: SDK not ready — is Garmin Connect Mobile installed?")
@@ -83,22 +89,26 @@ class RealGarminBridge(context: Context) : GarminBridge,
         }.onFailure { println("⚠️ GarminBridge discovery failed: $it") }
     }
 
-    override fun sendEnvelope(envelope: Map<String, Any?>) {
+    override fun sendEnvelope(envelope: Map<String, Any?>): Boolean {
         val device = connectedDevice ?: run {
             println("⚠️ GarminBridge: no connected device")
-            return
+            return false
         }
         val app = trackedApp ?: run {
             println("⚠️ GarminBridge: no tracked app")
-            return
+            return false
         }
-        runCatching {
+        return runCatching {
             ciq.sendMessage(device, app, envelope) { _, _, status ->
                 if (status != ConnectIQ.IQMessageStatus.SUCCESS) {
                     println("⚠️ sendMessage non-success: $status")
                 }
             }
-        }.onFailure { println("⚠️ sendMessage threw: $it") }
+            true
+        }.getOrElse {
+            println("⚠️ sendMessage threw: $it")
+            false
+        }
     }
 
     override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {
@@ -167,11 +177,19 @@ class RealGarminBridge(context: Context) : GarminBridge,
     }
 }
 
-/** No-op implementation for tests. */
-class StubGarminBridge : GarminBridge {
-    override val connectedDeviceName: String? = null
+/** No-op implementation for tests. `paired` / `capturedEnvelopes` make assertions possible. */
+class StubGarminBridge(
+    var paired: Boolean = false,
+    val capturedEnvelopes: MutableList<Map<String, Any?>> = mutableListOf(),
+) : GarminBridge {
+    override val connectedDeviceName: String? get() = if (paired) "Stub Watch" else null
+    override val isPaired: Boolean get() = paired
     override fun requestDeviceSelection() {}
-    override fun sendEnvelope(envelope: Map<String, Any?>) {}
+    override fun sendEnvelope(envelope: Map<String, Any?>): Boolean {
+        if (!paired) return false
+        capturedEnvelopes += envelope
+        return true
+    }
     override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {}
     override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {}
 }
