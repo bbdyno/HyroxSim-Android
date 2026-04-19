@@ -58,6 +58,7 @@ fun HomeRoute(
     onOpenHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenSummary: (workoutId: String) -> Unit,
+    onOpenGoal: (templateId: String) -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val ui by vm.ui.collectAsState(initial = HomeUiState(null, emptyList()))
@@ -79,7 +80,11 @@ fun HomeRoute(
             if (ui.savedTemplates.isNotEmpty()) {
                 item { SectionLabel("SAVED TEMPLATES", "Custom workouts") }
                 items(ui.savedTemplates, key = { it.id }) { t ->
-                    TemplateRow(template = t, onClick = { onStartTemplate(t.id) })
+                    TemplateRow(
+                        template = t,
+                        onClick = { onStartTemplate(t.id) },
+                        onGoalClick = { onOpenGoal(t.id) },
+                    )
                 }
             }
 
@@ -227,7 +232,11 @@ private fun DivisionPager(onPickDivision: (String) -> Unit) {
 }
 
 @Composable
-private fun TemplateRow(template: WorkoutTemplate, onClick: () -> Unit) {
+private fun TemplateRow(
+    template: WorkoutTemplate,
+    onClick: () -> Unit,
+    onGoalClick: () -> Unit,
+) {
     Surface(
         onClick = onClick,
         color = Color(0xFF0C0C0C),
@@ -247,6 +256,9 @@ private fun TemplateRow(template: WorkoutTemplate, onClick: () -> Unit) {
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),
                 )
+            }
+            androidx.compose.material3.TextButton(onClick = onGoalClick) {
+                Text("Goal", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF555555))
         }

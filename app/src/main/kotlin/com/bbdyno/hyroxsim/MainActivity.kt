@@ -60,6 +60,7 @@ private fun HyroxRootNav() {
                     onOpenHistory = { navController.navigate(Route.HISTORY) },
                     onOpenSettings = { navController.navigate(Route.SETTINGS) },
                     onOpenSummary = { navController.navigate(Route.summary(it)) },
+                    onOpenGoal = { navController.navigate(Route.goalSetup(it)) },
                 )
             }
             composable(Route.BUILDER) {
