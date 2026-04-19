@@ -18,6 +18,7 @@ import com.bbdyno.hyroxsim.feature.active.ActiveWorkoutRoute
 import com.bbdyno.hyroxsim.feature.builder.BuilderRoute
 import com.bbdyno.hyroxsim.feature.history.HistoryRoute
 import com.bbdyno.hyroxsim.feature.home.HomeRoute
+import com.bbdyno.hyroxsim.feature.home.TemplateDetailRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
 import com.bbdyno.hyroxsim.feature.goalsetup.GoalSetupRoute
 import com.bbdyno.hyroxsim.feature.summary.SummaryRoute
@@ -54,12 +55,30 @@ private fun HyroxRootNav() {
         ) {
             composable(Route.HOME) {
                 HomeRoute(
-                    onStartDivision = { navController.navigate(Route.activeWorkout(it)) },
-                    onStartTemplate = { navController.navigate(Route.activeTemplate(it)) },
+                    onOpenDetail = { navController.navigate(Route.templateDetail(it)) },
                     onOpenBuilder = { navController.navigate(Route.BUILDER) },
                     onOpenHistory = { navController.navigate(Route.HISTORY) },
                     onOpenSettings = { navController.navigate(Route.SETTINGS) },
                     onOpenSummary = { navController.navigate(Route.summary(it)) },
+                )
+            }
+            composable(
+                route = Route.TEMPLATE_DETAIL,
+                arguments = listOf(navArgument("routeKey") { type = NavType.StringType }),
+            ) { backStack ->
+                val routeKey = backStack.arguments?.getString("routeKey") ?: return@composable
+                TemplateDetailRoute(
+                    routeKey = routeKey,
+                    onBack = { navController.popBackStack() },
+                    onStart = { t ->
+                        // Built-in preset → activeWorkout(divisionRaw); saved → activeTemplate(id).
+                        if (t.isBuiltIn) {
+                            val raw = t.division?.raw
+                            if (raw != null) navController.navigate(Route.activeWorkout(raw))
+                        } else {
+                            navController.navigate(Route.activeTemplate(t.id))
+                        }
+                    },
                     onOpenGoal = { navController.navigate(Route.goalSetup(it)) },
                 )
             }

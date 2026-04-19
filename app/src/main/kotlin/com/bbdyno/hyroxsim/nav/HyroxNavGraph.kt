@@ -9,11 +9,13 @@ object Route {
     const val BUILDER = "builder"
     const val HISTORY = "history"
     const val SETTINGS = "settings"
+    const val TEMPLATE_DETAIL = "template_detail/{routeKey}"
     const val GOAL_SETUP = "goal_setup/{templateId}"
     const val ACTIVE_WORKOUT = "active/{divisionRaw}"
     const val ACTIVE_WORKOUT_FROM_TEMPLATE = "active_template/{templateId}"
     const val SUMMARY = "summary/{workoutId}"
 
+    fun templateDetail(routeKey: String) = "template_detail/$routeKey"
     fun activeWorkout(divisionRaw: String) = "active/$divisionRaw"
     fun activeTemplate(templateId: String) = "active_template/$templateId"
     fun summary(workoutId: String) = "summary/$workoutId"

@@ -53,13 +53,11 @@ import java.util.Locale
 @Composable
 fun HomeRoute(
     modifier: Modifier = Modifier,
-    onStartDivision: (divisionRaw: String) -> Unit,
-    onStartTemplate: (templateId: String) -> Unit,
+    onOpenDetail: (routeKey: String) -> Unit,
     onOpenBuilder: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenSummary: (workoutId: String) -> Unit,
-    onOpenGoal: (templateId: String) -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val ui by vm.ui.collectAsState(initial = HomeUiState(null, emptyList()))
@@ -78,8 +76,7 @@ fun HomeRoute(
             item { SectionLabel("SELECT DIVISION", "Swipe to pick a HYROX preset") }
             item {
                 DivisionPager(
-                    onPickDivision = onStartDivision,
-                    onOpenGoal = { raw -> onOpenGoal("builtin:$raw") },
+                    onPickDivision = { raw -> onOpenDetail("builtin:$raw") },
                 )
             }
 
@@ -88,8 +85,7 @@ fun HomeRoute(
                 items(ui.savedTemplates, key = { it.id }) { t ->
                     TemplateRow(
                         template = t,
-                        onClick = { onStartTemplate(t.id) },
-                        onGoalClick = { onOpenGoal(t.id) },
+                        onClick = { onOpenDetail(t.id) },
                     )
                 }
             }
@@ -166,7 +162,6 @@ private fun RecentCard(summary: WorkoutSummary, onClick: () -> Unit) {
 @Composable
 private fun DivisionPager(
     onPickDivision: (String) -> Unit,
-    onOpenGoal: (String) -> Unit,
 ) {
     val divisions = HyroxDivision.entries.toList()
     val pagerState = rememberPagerState(pageCount = { divisions.size })
@@ -182,11 +177,8 @@ private fun DivisionPager(
                 .height(170.dp),
         ) { pageIndex ->
             val division = divisions[pageIndex]
-            // Card surface stays non-clickable at the top level so the GOAL
-            // and START actions own their own hit boxes. Tapping the
-            // division title area is a no-op by design — users use the
-            // explicit buttons.
             Surface(
+                onClick = { onPickDivision(division.raw) },
                 color = Color(0xFF111111),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(18.dp),
@@ -214,27 +206,12 @@ private fun DivisionPager(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("8 runs · 8 stations", color = Color(0xFFAAAAAA), fontSize = 12.sp)
                         Box(modifier = Modifier.weight(1f))
-                        androidx.compose.material3.TextButton(
-                            onClick = { onOpenGoal(division.raw) },
-                        ) {
-                            Text(
-                                "GOAL",
-                                color = Color(0xFFFFD700),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-                        Spacer(Modifier.width(6.dp))
-                        androidx.compose.material3.TextButton(
-                            onClick = { onPickDivision(division.raw) },
-                        ) {
-                            Text(
-                                "START →",
-                                color = Color(0xFFFFD700),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                        Text(
+                            "DETAILS →",
+                            color = Color(0xFFFFD700),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
             }
@@ -262,7 +239,6 @@ private fun DivisionPager(
 private fun TemplateRow(
     template: WorkoutTemplate,
     onClick: () -> Unit,
-    onGoalClick: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
@@ -283,9 +259,6 @@ private fun TemplateRow(
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),
                 )
-            }
-            androidx.compose.material3.TextButton(onClick = onGoalClick) {
-                Text("Goal", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF555555))
         }
