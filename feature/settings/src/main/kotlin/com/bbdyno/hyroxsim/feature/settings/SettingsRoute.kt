@@ -1,27 +1,54 @@
 package com.bbdyno.hyroxsim.feature.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.health.connect.client.PermissionController
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bbdyno.hyroxsim.core.sensors.HeartRateSource
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsRoute(
@@ -29,56 +56,28 @@ fun SettingsRoute(
     onBack: () -> Unit = {},
     vm: SettingsViewModel = hiltViewModel(),
 ) {
-    var statusText by remember { mutableStateOf("연결 안 됨") }
-
     Column(
         modifier = modifier
             .background(Color.Black)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "설정",
-            color = Color(0xFFFFD700),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+            }
+            Text(
+                text = "설정",
+                color = Color(0xFFFFD700),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
         HorizontalDivider(color = Color(0xFF222222))
 
-        Surface(
-            color = Color(0xFF0C0C0C),
-            contentColor = Color.White,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("가민 워치 연결", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                Text(
-                    "가민 워치로 HYROX 운동을 기록하려면:\n" +
-                        "• Garmin Connect 앱이 폰에 설치·로그인되어 있어야 합니다\n" +
-                        "• 워치가 Garmin Connect에 페어링되어 있어야 합니다\n" +
-                        "• Connect IQ Store에서 HyroxSim 워치앱을 설치하세요",
-                    color = Color(0xFFAAAAAA),
-                    fontSize = 12.sp,
-                )
-                Text(
-                    text = "상태: ${vm.connectedDeviceName ?: statusText}",
-                    color = Color(0xFF888888),
-                    fontSize = 12.sp,
-                )
-                Button(
-                    onClick = {
-                        vm.requestDeviceSelection()
-                        statusText = "Garmin Connect Mobile 실행됨"
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFD700),
-                        contentColor = Color.Black,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("기기 선택", fontWeight = FontWeight.Bold) }
-            }
-        }
+        GarminCard(vm = vm)
+        SensorPermissionsCard()
 
         Surface(
             color = Color(0xFF0C0C0C),
@@ -88,9 +87,176 @@ fun SettingsRoute(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("앱 버전", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text("1.0.0 (안드로이드 · 가민 전용)",
-                    color = Color(0xFF888888), fontSize = 12.sp)
+                Text(
+                    "1.0.0 (안드로이드 · 가민 전용)",
+                    color = Color(0xFF888888),
+                    fontSize = 12.sp,
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun GarminCard(vm: SettingsViewModel) {
+    var statusText by remember { mutableStateOf("연결 안 됨") }
+    Surface(
+        color = Color(0xFF0C0C0C),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("가민 워치 연결", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "가민 워치로 HYROX 운동을 기록하려면:\n" +
+                    "• Garmin Connect 앱이 폰에 설치·로그인되어 있어야 합니다\n" +
+                    "• 워치가 Garmin Connect에 페어링되어 있어야 합니다\n" +
+                    "• Connect IQ Store에서 HyroxSim 워치앱을 설치하세요",
+                color = Color(0xFFAAAAAA),
+                fontSize = 12.sp,
+            )
+            Text(
+                text = "상태: ${vm.connectedDeviceName ?: statusText}",
+                color = Color(0xFF888888),
+                fontSize = 12.sp,
+            )
+            Button(
+                onClick = {
+                    vm.requestDeviceSelection()
+                    statusText = "Garmin Connect Mobile 실행됨"
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFD700),
+                    contentColor = Color.Black,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("기기 선택", fontWeight = FontWeight.Bold) }
+        }
+    }
+}
+
+/**
+ * Runtime permission management for GPS + Health Connect HR. Android's
+ * permission model splits them: location is a classic runtime permission
+ * (dangerous level), Health Connect uses a dedicated contract.
+ */
+@Composable
+private fun SensorPermissionsCard() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val hrSource = remember { HeartRateSource(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    var locationGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    var hrGranted by remember { mutableStateOf(false) }
+    var hrAvailable by remember { mutableStateOf(true) }
+
+    // Refresh HC status when the screen becomes visible (user might have
+    // granted permissions in a different app).
+    LaunchedEffect(lifecycleOwner.lifecycle) {
+        hrAvailable = hrSource.isAvailable()
+        if (hrAvailable) {
+            hrGranted = hrSource.hasPermissions()
+        }
+    }
+
+    val locationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> locationGranted = granted }
+
+    val hcLauncher = rememberLauncherForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        hrGranted = granted.containsAll(HeartRateSource.REQUIRED_PERMISSIONS)
+    }
+
+    Surface(
+        color = Color(0xFF0C0C0C),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("센서 권한", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+
+            PermissionRow(
+                label = "위치 (GPS)",
+                description = "Run / ROX Zone 구간 거리·페이스 측정",
+                granted = locationGranted,
+                actionLabel = if (locationGranted) "허용됨" else "허용",
+                enabled = !locationGranted,
+                onClick = { locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
+            )
+
+            PermissionRow(
+                label = "심박수 (Health Connect)",
+                description = if (hrAvailable) {
+                    "운동 중 실시간 HR 수집"
+                } else {
+                    "Health Connect 미설치 — Play Store에서 설치하세요"
+                },
+                granted = hrGranted,
+                actionLabel = when {
+                    !hrAvailable -> "미지원"
+                    hrGranted -> "허용됨"
+                    else -> "허용"
+                },
+                enabled = hrAvailable && !hrGranted,
+                onClick = {
+                    scope.launch {
+                        hcLauncher.launch(HeartRateSource.REQUIRED_PERMISSIONS)
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PermissionRow(
+    label: String,
+    description: String,
+    granted: Boolean,
+    actionLabel: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .background(
+                    color = if (granted) Color(0xFF4CD964) else Color(0xFF666666),
+                    shape = CircleShape,
+                ),
+        )
+        Spacer(Modifier.size(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(description, color = Color(0xFF888888), fontSize = 11.sp)
+        }
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFFD700),
+                contentColor = Color.Black,
+                disabledContainerColor = Color(0xFF222222),
+                disabledContentColor = Color(0xFF888888),
+            ),
+        ) { Text(actionLabel, fontSize = 12.sp) }
     }
 }

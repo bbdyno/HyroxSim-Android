@@ -30,7 +30,14 @@ class HeartRateSource(private val context: Context) {
         }.getOrNull()
     }
 
-    val permissions = setOf(HealthPermission.getReadPermission(HeartRateRecord::class))
+    companion object {
+        val REQUIRED_PERMISSIONS: Set<String> =
+            setOf(HealthPermission.getReadPermission(HeartRateRecord::class))
+    }
+
+    val permissions = REQUIRED_PERMISSIONS
+
+    fun isAvailable(): Boolean = client != null
 
     suspend fun hasPermissions(): Boolean {
         val c = client ?: return false

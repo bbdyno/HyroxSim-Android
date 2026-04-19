@@ -21,7 +21,10 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:sync-garmin"))
+    implementation(project(":core:sensors"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
