@@ -11,6 +11,7 @@ import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutRepository
 import com.bbdyno.hyroxsim.sync.garmin.GarminBridge
 import com.bbdyno.hyroxsim.sync.garmin.GarminGoalSyncService
+import com.bbdyno.hyroxsim.sync.garmin.GarminImportService
 import com.bbdyno.hyroxsim.sync.garmin.GarminTemplateSyncService
 import dagger.Module
 import dagger.Provides
@@ -63,6 +64,16 @@ object AppModule {
     @Singleton
     fun provideGarminGoalSyncService(bridge: GarminBridge): GarminGoalSyncService =
         GarminGoalSyncService(bridge)
+
+    @Provides
+    @Singleton
+    fun provideGarminImportService(
+        bridge: GarminBridge,
+        workouts: WorkoutRepository,
+    ): GarminImportService = GarminImportService(
+        bridge = bridge,
+        onImport = { workout -> workouts.save(workout) },
+    )
 
     @Provides
     @Singleton

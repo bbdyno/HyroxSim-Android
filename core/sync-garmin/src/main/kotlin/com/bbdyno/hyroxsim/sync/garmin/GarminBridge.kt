@@ -184,12 +184,19 @@ class StubGarminBridge(
 ) : GarminBridge {
     override val connectedDeviceName: String? get() = if (paired) "Stub Watch" else null
     override val isPaired: Boolean get() = paired
+    private var messageHandler: (Map<String, Any?>) -> Unit = {}
     override fun requestDeviceSelection() {}
     override fun sendEnvelope(envelope: Map<String, Any?>): Boolean {
         if (!paired) return false
         capturedEnvelopes += envelope
         return true
     }
-    override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {}
+    override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {
+        messageHandler = handler
+    }
     override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {}
+    /** Test helper: simulate a watch-sourced envelope arriving. */
+    fun simulateMessage(envelope: Map<String, Any?>) {
+        messageHandler(envelope)
+    }
 }
