@@ -22,6 +22,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -80,6 +82,10 @@ fun TemplateDetailRoute(
                 totalSeconds = ui.goalTotalSeconds ?: template.estimatedDurationSeconds.toInt(),
                 hasExplicitGoal = ui.goalTotalSeconds != null,
                 onClick = { onOpenGoal(routeKey) },
+            )
+            RoxZoneCard(
+                enabled = template.usesRoxZone,
+                onToggle = vm::onRoxZoneToggled,
             )
             CourseList(template)
             Spacer(Modifier.height(40.dp))
@@ -162,6 +168,41 @@ private fun GoalCard(
                 )
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF555555))
+        }
+    }
+}
+
+@Composable
+private fun RoxZoneCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Surface(
+        color = Color(0xFF0C0C0C),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("ROX ZONE", color = Color(0xFFFFD700), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    if (enabled) "Transitions between Run and Station" else "Direct Run → Station",
+                    color = Color(0xFFAAAAAA),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.Black,
+                    checkedTrackColor = Color(0xFFFFD700),
+                    uncheckedThumbColor = Color(0xFF666666),
+                    uncheckedTrackColor = Color(0xFF2C2C2C),
+                ),
+            )
         }
     }
 }
