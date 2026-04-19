@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,37 +68,39 @@ fun SummaryRoute(
             modifier = Modifier.fillMaxWidth(),
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.summary_back), tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
             Text(
-                "Summary",
+                stringResource(R.string.summary_title),
                 color = Color(0xFFFFD700),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
+            val shareChooserTitle = stringResource(R.string.summary_share_chooser)
+            val shareCd = stringResource(R.string.summary_share_cd)
             ui.workout?.let { w ->
                 IconButton(onClick = {
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, buildShareText(w))
                     }
-                    context.startActivity(Intent.createChooser(intent, "Share"))
+                    context.startActivity(Intent.createChooser(intent, shareChooserTitle))
                 }) {
-                    Icon(Icons.Default.Share, contentDescription = "공유", tint = Color(0xFFFFD700))
+                    Icon(Icons.Default.Share, contentDescription = shareCd, tint = Color(0xFFFFD700))
                 }
             }
         }
 
         if (ui.loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("로딩 중…", color = Color(0xFF888888))
+                Text(stringResource(R.string.summary_loading), color = Color(0xFF888888))
             }
             return@Column
         }
         val w = ui.workout ?: run {
-            Text("운동을 찾을 수 없습니다", color = Color(0xFF888888))
+            Text(stringResource(R.string.summary_not_found), color = Color(0xFF888888))
             return@Column
         }
 
@@ -121,7 +124,7 @@ private fun HeaderBlock(workout: CompletedWorkout) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text("TOTAL", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.summary_section_total), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Text(
                 formatMs(workout.totalActiveDurationMs),
                 color = Color.White,
@@ -142,7 +145,7 @@ private fun HeaderBlock(workout: CompletedWorkout) {
 private fun SegmentTable(workout: CompletedWorkout) {
     Column {
         Text(
-            "SPLITS",
+            stringResource(R.string.summary_section_splits),
             color = Color(0xFFFFD700),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -150,9 +153,9 @@ private fun SegmentTable(workout: CompletedWorkout) {
         )
         // Header
         Row(Modifier.padding(vertical = 4.dp)) {
-            Text("Split", color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(1.6f))
-            Text("Time", color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(1f))
-            Text("Δ", color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(0.8f))
+            Text(stringResource(R.string.summary_col_split), color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(1.6f))
+            Text(stringResource(R.string.summary_col_time), color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.summary_col_delta), color = Color(0xFF888888), fontSize = 11.sp, modifier = Modifier.weight(0.8f))
         }
         HorizontalDivider(color = Color(0xFF222222))
         workout.segments.forEach { seg ->
@@ -169,10 +172,10 @@ private fun SegmentRow(segment: SegmentRecord, workout: CompletedWorkout) {
         SegmentType.Station -> Color(0xFFFFD700)
     }
     val label = when (segment.type) {
-        SegmentType.Run -> "Run"
-        SegmentType.RoxZone -> "ROX Zone"
+        SegmentType.Run -> stringResource(R.string.summary_segment_run)
+        SegmentType.RoxZone -> stringResource(R.string.summary_segment_rox)
         SegmentType.Station -> workout.resolvedStationDisplayName(segment)
-            ?: segment.stationDisplayName ?: "Station"
+            ?: segment.stationDisplayName ?: stringResource(R.string.summary_segment_station_fallback)
     }
     val goalSec = segment.goalDurationSeconds ?: 0.0
     val deltaMs = segment.activeDurationMs - (goalSec * 1000).toLong()
@@ -221,12 +224,12 @@ private fun AggregateFooter(workout: CompletedWorkout) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("AGGREGATE", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            StatRow("Run total", formatMs(runMs))
-            StatRow("ROX Zone total", formatMs(roxMs))
-            pace?.let { StatRow("Avg pace", "${(it / 60).toInt()}:%02d /km".format((it % 60).toInt())) }
-            workout.averageHeartRate?.let { StatRow("Avg HR", "$it bpm") }
-            workout.maxHeartRate?.let { StatRow("Max HR", "$it bpm") }
+            Text(stringResource(R.string.summary_section_aggregate), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            StatRow(stringResource(R.string.summary_stat_run_total), formatMs(runMs))
+            StatRow(stringResource(R.string.summary_stat_rox_total), formatMs(roxMs))
+            pace?.let { StatRow(stringResource(R.string.summary_stat_avg_pace), "${(it / 60).toInt()}:%02d /km".format((it % 60).toInt())) }
+            workout.averageHeartRate?.let { StatRow(stringResource(R.string.summary_stat_avg_hr), stringResource(R.string.summary_stat_hr_unit, it)) }
+            workout.maxHeartRate?.let { StatRow(stringResource(R.string.summary_stat_max_hr), stringResource(R.string.summary_stat_hr_unit, it)) }
         }
     }
 }
@@ -253,7 +256,7 @@ private fun HeartRateZoneChart(workout: CompletedWorkout) {
     )
     val total = zones.sumOf { it.second }.coerceAtLeast(1)
     Column {
-        Text("HR ZONES", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.summary_section_hr_zones), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         zones.forEach { (name, count) ->
             val pct = count.toFloat() / total

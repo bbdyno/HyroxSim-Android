@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,7 +43,7 @@ fun HistoryRoute(
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         Text(
-            text = "기록",
+            text = stringResource(R.string.history_title),
             color = Color(0xFFFFD700),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -54,7 +55,7 @@ fun HistoryRoute(
 
         if (rows.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("완료한 운동이 없습니다", color = Color(0xFF666666), fontSize = 14.sp)
+                Text(stringResource(R.string.history_empty), color = Color(0xFF666666), fontSize = 14.sp)
             }
             return@Column
         }
@@ -82,7 +83,13 @@ fun HistoryRoute(
                             modifier = Modifier.padding(top = 4.dp),
                         )
                         Text(
-                            text = "Time: ${formatElapsed(s.totalActiveDurationMs)}   Dist: ${"%.2f".format(s.totalDistanceMeters / 1000)} km",
+                            text = stringResource(
+                                R.string.history_row_meta_time,
+                                formatElapsed(s.totalActiveDurationMs),
+                            ) + "   " + stringResource(
+                                R.string.history_row_meta_distance,
+                                "%.2f".format(s.totalDistanceMeters / 1000),
+                            ),
                             color = Color(0xFFAAAAAA),
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 2.dp),
@@ -94,10 +101,11 @@ fun HistoryRoute(
     }
 }
 
+@Composable
 private fun badge(sourceRaw: String): String = when (sourceRaw) {
-    "watch" -> "Apple Watch"
-    "garmin" -> "Garmin"
-    else -> "Manual"
+    "watch" -> stringResource(R.string.history_source_watch)
+    "garmin" -> stringResource(R.string.history_source_garmin)
+    else -> stringResource(R.string.history_source_manual)
 }
 
 private fun formatDate(ms: Long): String =

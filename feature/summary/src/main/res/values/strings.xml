@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="summary_back">Back</string>
+    <string name="summary_title">Summary</string>
+    <string name="summary_share_cd">Share</string>
+    <string name="summary_share_chooser">Share</string>
+    <string name="summary_loading">Loading…</string>
+    <string name="summary_not_found">Workout not found</string>
+    <string name="summary_section_total">TOTAL</string>
+    <string name="summary_section_splits">SPLITS</string>
+    <string name="summary_col_split">Split</string>
+    <string name="summary_col_time">Time</string>
+    <string name="summary_col_delta">Δ</string>
+    <string name="summary_segment_run">Run</string>
+    <string name="summary_segment_rox">ROX Zone</string>
+    <string name="summary_segment_station_fallback">Station</string>
+    <string name="summary_section_aggregate">AGGREGATE</string>
+    <string name="summary_stat_run_total">Run total</string>
+    <string name="summary_stat_rox_total">ROX Zone total</string>
+    <string name="summary_stat_avg_pace">Avg pace</string>
+    <string name="summary_stat_avg_hr">Avg HR</string>
+    <string name="summary_stat_max_hr">Max HR</string>
+    <string name="summary_stat_hr_unit">%1$d bpm</string>
+    <string name="summary_section_hr_zones">HR ZONES</string>
+</resources>

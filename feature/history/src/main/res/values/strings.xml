@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">History</string>
+    <string name="history_empty">No completed workouts yet</string>
+    <string name="history_row_meta_time">Time: %1$s</string>
+    <string name="history_row_meta_distance">Dist: %1$s km</string>
+    <string name="history_source_watch">Apple Watch</string>
+    <string name="history_source_garmin">Garmin</string>
+    <string name="history_source_manual">Manual</string>
+</resources>

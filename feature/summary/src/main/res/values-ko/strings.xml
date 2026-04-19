@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="summary_back">뒤로</string>
+    <string name="summary_title">요약</string>
+    <string name="summary_share_cd">공유</string>
+    <string name="summary_share_chooser">공유</string>
+    <string name="summary_loading">불러오는 중…</string>
+    <string name="summary_not_found">운동을 찾을 수 없습니다</string>
+    <string name="summary_section_total">총합</string>
+    <string name="summary_section_splits">스플릿</string>
+    <string name="summary_col_split">구간</string>
+    <string name="summary_col_time">시간</string>
+    <string name="summary_col_delta">Δ</string>
+    <string name="summary_segment_run">런</string>
+    <string name="summary_segment_rox">ROX Zone</string>
+    <string name="summary_segment_station_fallback">스테이션</string>
+    <string name="summary_section_aggregate">집계</string>
+    <string name="summary_stat_run_total">런 총 시간</string>
+    <string name="summary_stat_rox_total">ROX Zone 총 시간</string>
+    <string name="summary_stat_avg_pace">평균 페이스</string>
+    <string name="summary_stat_avg_hr">평균 심박수</string>
+    <string name="summary_stat_max_hr">최대 심박수</string>
+    <string name="summary_stat_hr_unit">%1$d bpm</string>
+    <string name="summary_section_hr_zones">심박 존</string>
+</resources>

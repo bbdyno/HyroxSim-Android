@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,7 +102,7 @@ fun ActiveWorkoutRoute(
             )
 
             Text(
-                "TOTAL ${formatMs(ui.totalElapsedMs)}",
+                stringResource(R.string.active_total_prefix, formatMs(ui.totalElapsedMs)),
                 color = Color(0xFF888888),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -122,7 +123,7 @@ fun ActiveWorkoutRoute(
 
             if (ui.engineStateLabel == "paused") {
                 Text(
-                    "PAUSED",
+                    stringResource(R.string.active_paused),
                     color = Color(0xFFFF3B30),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -151,8 +152,8 @@ private fun GoalCard(ui: ActiveWorkoutUiState) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            GoalRow(label = "SEG", target = ui.segmentTargetMs, deltaMs = ui.segmentDeltaMs)
-            GoalRow(label = "TOTAL", target = ui.totalTargetMs, deltaMs = ui.totalDeltaMs)
+            GoalRow(label = stringResource(R.string.active_goal_seg), target = ui.segmentTargetMs, deltaMs = ui.segmentDeltaMs)
+            GoalRow(label = stringResource(R.string.active_goal_total), target = ui.totalTargetMs, deltaMs = ui.totalDeltaMs)
         }
     }
 }
@@ -169,7 +170,7 @@ private fun GoalRow(label: String, target: Long, deltaMs: Long) {
             modifier = Modifier.width(42.dp),
         )
         Text(
-            "target ${formatMs(target)}",
+            stringResource(R.string.active_target_prefix, formatMs(target)),
             color = Color(0xFFAAAAAA),
             fontSize = 12.sp,
             modifier = Modifier.weight(1f),
@@ -192,24 +193,25 @@ private fun SensorRow(ui: ActiveWorkoutUiState) {
             .fillMaxWidth()
             .padding(top = 6.dp),
     ) {
+        val unknown = stringResource(R.string.active_sensor_unknown)
         SensorMetric(
-            label = "HR",
-            value = ui.currentHr?.let { "$it" } ?: "—",
-            unit = "bpm",
+            label = stringResource(R.string.active_sensor_hr),
+            value = ui.currentHr?.let { "$it" } ?: unknown,
+            unit = stringResource(R.string.active_sensor_hr_unit),
             modifier = Modifier.weight(1f),
         )
         SensorMetric(
-            label = "DIST",
+            label = stringResource(R.string.active_sensor_dist),
             value = "%.2f".format(ui.currentDistanceMeters / 1000),
-            unit = "km",
+            unit = stringResource(R.string.active_sensor_dist_unit),
             modifier = Modifier.weight(1f),
         )
         SensorMetric(
-            label = "PACE",
+            label = stringResource(R.string.active_sensor_pace),
             value = ui.currentPaceSecondsPerKm?.let { sec ->
                 "%d:%02d".format((sec / 60).toInt(), (sec % 60).toInt())
-            } ?: "—",
-            unit = "/km",
+            } ?: unknown,
+            unit = stringResource(R.string.active_sensor_pace_unit),
             modifier = Modifier.weight(1f),
         )
     }
@@ -316,7 +318,7 @@ private fun SlideToAdvance(
     ) {
         Box(contentAlignment = Alignment.CenterStart) {
             Text(
-                if (enabled) "SLIDE TO ADVANCE →" else "PAUSED",
+                if (enabled) stringResource(R.string.active_slide_to_advance) else stringResource(R.string.active_paused),
                 color = Color(0xFF888888),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
@@ -359,7 +361,7 @@ private fun FinishedView(totalMs: Long, onOk: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("FINISHED", color = Color(0xFFFFD700), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.active_finished), color = Color(0xFFFFD700), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(
             formatMs(totalMs),
             color = Color.White,
@@ -367,7 +369,7 @@ private fun FinishedView(totalMs: Long, onOk: () -> Unit) {
             fontWeight = FontWeight.Black,
             modifier = Modifier.padding(vertical = 12.dp),
         )
-        OutlinedButton(onClick = onOk) { Text("Done") }
+        OutlinedButton(onClick = onOk) { Text(stringResource(R.string.active_done)) }
     }
 }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">履歴</string>
+    <string name="history_empty">完了したワークアウトはまだありません</string>
+    <string name="history_row_meta_time">時間: %1$s</string>
+    <string name="history_row_meta_distance">距離: %1$s km</string>
+    <string name="history_source_watch">Apple Watch</string>
+    <string name="history_source_garmin">Garmin</string>
+    <string name="history_source_manual">手動</string>
+</resources>

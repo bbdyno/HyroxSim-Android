@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="summary_back">返回</string>
+    <string name="summary_title">摘要</string>
+    <string name="summary_share_cd">分享</string>
+    <string name="summary_share_chooser">分享</string>
+    <string name="summary_loading">加载中…</string>
+    <string name="summary_not_found">未找到训练</string>
+    <string name="summary_section_total">总计</string>
+    <string name="summary_section_splits">分段</string>
+    <string name="summary_col_split">分段</string>
+    <string name="summary_col_time">时间</string>
+    <string name="summary_col_delta">Δ</string>
+    <string name="summary_segment_run">跑步</string>
+    <string name="summary_segment_rox">ROX Zone</string>
+    <string name="summary_segment_station_fallback">工作站</string>
+    <string name="summary_section_aggregate">汇总</string>
+    <string name="summary_stat_run_total">跑步总时长</string>
+    <string name="summary_stat_rox_total">ROX Zone 总时长</string>
+    <string name="summary_stat_avg_pace">平均配速</string>
+    <string name="summary_stat_avg_hr">平均心率</string>
+    <string name="summary_stat_max_hr">最大心率</string>
+    <string name="summary_stat_hr_unit">%1$d bpm</string>
+    <string name="summary_section_hr_zones">心率区间</string>
+</resources>

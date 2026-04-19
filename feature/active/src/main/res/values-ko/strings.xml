@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="active_total_prefix">총합 %1$s</string>
+    <string name="active_target_prefix">목표 %1$s</string>
+    <string name="active_goal_seg">구간</string>
+    <string name="active_goal_total">총합</string>
+    <string name="active_paused">일시정지</string>
+    <string name="active_sensor_hr">심박</string>
+    <string name="active_sensor_hr_unit">bpm</string>
+    <string name="active_sensor_dist">거리</string>
+    <string name="active_sensor_dist_unit">km</string>
+    <string name="active_sensor_pace">페이스</string>
+    <string name="active_sensor_pace_unit">/km</string>
+    <string name="active_sensor_unknown">—</string>
+    <string name="active_slide_to_advance">밀어서 다음 →</string>
+    <string name="active_finished">완료</string>
+    <string name="active_done">확인</string>
+</resources>

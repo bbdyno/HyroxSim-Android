@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="active_total_prefix">合計 %1$s</string>
+    <string name="active_target_prefix">目標 %1$s</string>
+    <string name="active_goal_seg">セグ</string>
+    <string name="active_goal_total">合計</string>
+    <string name="active_paused">一時停止</string>
+    <string name="active_sensor_hr">心拍</string>
+    <string name="active_sensor_hr_unit">bpm</string>
+    <string name="active_sensor_dist">距離</string>
+    <string name="active_sensor_dist_unit">km</string>
+    <string name="active_sensor_pace">ペース</string>
+    <string name="active_sensor_pace_unit">/km</string>
+    <string name="active_sensor_unknown">—</string>
+    <string name="active_slide_to_advance">スライドで次へ →</string>
+    <string name="active_finished">完了</string>
+    <string name="active_done">OK</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">기록</string>
+    <string name="history_empty">완료한 운동이 없습니다</string>
+    <string name="history_row_meta_time">시간: %1$s</string>
+    <string name="history_row_meta_distance">거리: %1$s km</string>
+    <string name="history_source_watch">Apple Watch</string>
+    <string name="history_source_garmin">Garmin</string>
+    <string name="history_source_manual">수동</string>
+</resources>

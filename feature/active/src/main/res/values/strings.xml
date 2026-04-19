@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="active_total_prefix">TOTAL %1$s</string>
+    <string name="active_target_prefix">target %1$s</string>
+    <string name="active_goal_seg">SEG</string>
+    <string name="active_goal_total">TOTAL</string>
+    <string name="active_paused">PAUSED</string>
+    <string name="active_sensor_hr">HR</string>
+    <string name="active_sensor_hr_unit">bpm</string>
+    <string name="active_sensor_dist">DIST</string>
+    <string name="active_sensor_dist_unit">km</string>
+    <string name="active_sensor_pace">PACE</string>
+    <string name="active_sensor_pace_unit">/km</string>
+    <string name="active_sensor_unknown">—</string>
+    <string name="active_slide_to_advance">SLIDE TO ADVANCE →</string>
+    <string name="active_finished">FINISHED</string>
+    <string name="active_done">Done</string>
+</resources>
