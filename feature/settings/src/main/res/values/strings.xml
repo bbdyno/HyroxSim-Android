@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back">Back</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_app_version_title">App Version</string>
+    <string name="settings_app_version_value">1.0.0 (Android · Garmin only)</string>
+
+    <string name="settings_garmin_title">Pair Garmin Watch</string>
+    <string name="settings_garmin_instructions">To record HYROX workouts with your Garmin watch:\n• Install Garmin Connect on this phone and sign in\n• Pair your watch with Garmin Connect\n• Install HyroxSim watch app from Connect IQ Store</string>
+    <string name="settings_garmin_status_prefix">Status: %1$s</string>
+    <string name="settings_garmin_status_disconnected">Not connected</string>
+    <string name="settings_garmin_status_launched">Garmin Connect launched</string>
+    <string name="settings_garmin_pick_device">Select Device</string>
+
+    <string name="settings_sensor_title">Sensor Permissions</string>
+    <string name="settings_permission_location_label">Location (GPS)</string>
+    <string name="settings_permission_location_desc">Run / ROX Zone distance and pace tracking</string>
+    <string name="settings_permission_hr_label">Heart Rate (Health Connect)</string>
+    <string name="settings_permission_hr_desc">Real-time HR during workouts</string>
+    <string name="settings_permission_hr_missing">Health Connect not installed — install from Play Store</string>
+    <string name="settings_permission_granted">Allowed</string>
+    <string name="settings_permission_allow">Allow</string>
+    <string name="settings_permission_unsupported">Unsupported</string>
+</resources>

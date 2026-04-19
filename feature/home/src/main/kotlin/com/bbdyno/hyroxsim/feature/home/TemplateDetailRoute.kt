@@ -32,12 +32,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bbdyno.hyroxsim.core.domain.SegmentType
 import com.bbdyno.hyroxsim.core.domain.WorkoutTemplate
+import com.bbdyno.hyroxsim.feature.home.R
 
 /**
  * Detail view for a built-in preset or saved template. Mirrors iOS
@@ -68,12 +70,12 @@ fun TemplateDetailRoute(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.detail_back), tint = Color.White)
                 }
             }
 
             if (template == null) {
-                Text("Loading…", color = Color(0xFF888888))
+                Text(stringResource(R.string.detail_loading), color = Color(0xFF888888))
                 return@Column
             }
 
@@ -106,7 +108,7 @@ fun TemplateDetailRoute(
                     ),
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                 ) {
-                    Text("Start Workout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.detail_start_workout), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
@@ -126,7 +128,7 @@ private fun TitleBlock(template: WorkoutTemplate) {
     Column {
         Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text(
-            "$stations stations · %.1f km run · ~$est min".format(runKm),
+            stringResource(R.string.detail_title_summary, stations, runKm, est),
             color = Color(0xFFAAAAAA),
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 4.dp),
@@ -152,16 +154,16 @@ private fun GoalCard(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("GOALS", color = Color(0xFFFFD700), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.detail_goals_title), color = Color(0xFFFFD700), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "GOAL " + formatHms(totalSeconds.toLong() * 1000),
+                    stringResource(R.string.detail_goal_prefix, formatHms(totalSeconds.toLong() * 1000)),
                     color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 4.dp),
                 )
                 Text(
-                    if (hasExplicitGoal) "Edit segment targets" else "Set a finish time",
+                    if (hasExplicitGoal) stringResource(R.string.detail_goal_hint_edit) else stringResource(R.string.detail_goal_hint_set),
                     color = Color(0xFF888888),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),
@@ -185,9 +187,9 @@ private fun RoxZoneCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("ROX ZONE", color = Color(0xFFFFD700), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.detail_rox_zone_title), color = Color(0xFFFFD700), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    if (enabled) "Transitions between Run and Station" else "Direct Run → Station",
+                    if (enabled) stringResource(R.string.detail_rox_zone_on) else stringResource(R.string.detail_rox_zone_off),
                     color = Color(0xFFAAAAAA),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp),
@@ -209,7 +211,7 @@ private fun RoxZoneCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
 
 @Composable
 private fun CourseList(template: WorkoutTemplate) {
-    Text("COURSE", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    Text(stringResource(R.string.detail_course_title), color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         template.segments.forEachIndexed { i, seg ->
             val typeColor = when (seg.type) {
@@ -218,9 +220,12 @@ private fun CourseList(template: WorkoutTemplate) {
                 SegmentType.Station -> Color(0xFFFFD700)
             }
             val label = when (seg.type) {
-                SegmentType.Run -> "Run ${seg.distanceMeters?.toInt()?.let { it / 1000 }?.let { "${it}km" } ?: ""}".trim()
-                SegmentType.RoxZone -> "ROX Zone"
-                SegmentType.Station -> seg.stationKind?.displayName ?: "Station"
+                SegmentType.Run -> {
+                    val km = seg.distanceMeters?.toInt()?.let { it / 1000 } ?: 0
+                    stringResource(R.string.detail_segment_run, km)
+                }
+                SegmentType.RoxZone -> stringResource(R.string.detail_segment_rox)
+                SegmentType.Station -> seg.stationKind?.displayName ?: stringResource(R.string.detail_segment_station_fallback)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,

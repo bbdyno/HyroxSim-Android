@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.bbdyno.hyroxsim.core.domain.HyroxDivision
 import com.bbdyno.hyroxsim.core.domain.WorkoutTemplate
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutSummary
+import com.bbdyno.hyroxsim.feature.home.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,7 +74,12 @@ fun HomeRoute(
                 item { RecentCard(summary = recent, onClick = { onOpenSummary(recent.id) }) }
             }
 
-            item { SectionLabel("SELECT DIVISION", "Swipe to pick a HYROX preset") }
+            item {
+                SectionLabel(
+                    title = stringResource(R.string.home_section_select_division),
+                    subtitle = stringResource(R.string.home_section_select_division_hint),
+                )
+            }
             item {
                 DivisionPager(
                     onPickDivision = { raw -> onOpenDetail("builtin:$raw") },
@@ -80,7 +87,12 @@ fun HomeRoute(
             }
 
             if (ui.savedTemplates.isNotEmpty()) {
-                item { SectionLabel("SAVED TEMPLATES", "Custom workouts") }
+                item {
+                    SectionLabel(
+                        title = stringResource(R.string.home_section_saved_templates),
+                        subtitle = stringResource(R.string.home_section_saved_templates_hint),
+                    )
+                }
                 items(ui.savedTemplates, key = { it.id }) { t ->
                     TemplateRow(
                         template = t,
@@ -89,9 +101,21 @@ fun HomeRoute(
                 }
             }
 
-            item { SectionLabel("MY WORKOUTS", null) }
-            item { ActionButton("Create Custom", "Build your own HYROX", onOpenBuilder) }
-            item { ActionButton("History", "Completed workouts", onOpenHistory) }
+            item { SectionLabel(stringResource(R.string.home_section_my_workouts), null) }
+            item {
+                ActionButton(
+                    label = stringResource(R.string.home_action_create_custom),
+                    subtitle = stringResource(R.string.home_action_create_custom_hint),
+                    onClick = onOpenBuilder,
+                )
+            }
+            item {
+                ActionButton(
+                    label = stringResource(R.string.home_action_history),
+                    subtitle = stringResource(R.string.home_action_history_hint),
+                    onClick = onOpenHistory,
+                )
+            }
         }
     }
 }
@@ -104,13 +128,13 @@ private fun HeaderRow() {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                "HyroxSim",
+                stringResource(R.string.home_brand_title),
                 color = Color(0xFFFFD700),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                "HYROX Simulator",
+                stringResource(R.string.home_brand_subtitle),
                 color = Color(0xFFAAAAAA),
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 2.dp),
@@ -129,7 +153,7 @@ private fun RecentCard(summary: WorkoutSummary, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text("RECENT", color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.home_recent_badge), color = Color(0xFFFFD700), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             Text(
                 summary.templateName,
                 color = Color.White,
@@ -200,10 +224,10 @@ private fun DivisionPager(
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("8 runs · 8 stations", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Text(stringResource(R.string.home_division_summary), color = Color(0xFFAAAAAA), fontSize = 12.sp)
                         Box(modifier = Modifier.weight(1f))
                         Text(
-                            "DETAILS →",
+                            stringResource(R.string.home_division_details),
                             color = Color(0xFFFFD700),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
@@ -250,7 +274,10 @@ private fun TemplateRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(template.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 Text(
-                    "${template.segments.size} segments · ROX ${if (template.usesRoxZone) "on" else "off"}",
+                    if (template.usesRoxZone)
+                        stringResource(R.string.home_template_segments_on, template.segments.size)
+                    else
+                        stringResource(R.string.home_template_segments_off, template.segments.size),
                     color = Color(0xFF888888),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 2.dp),

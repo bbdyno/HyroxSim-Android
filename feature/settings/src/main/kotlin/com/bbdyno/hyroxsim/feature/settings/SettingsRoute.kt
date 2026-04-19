@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,11 +67,11 @@ fun SettingsRoute(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로", tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.settings_back), tint = Color.White)
                 }
             }
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_title),
                 color = Color(0xFFFFD700),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -89,9 +90,9 @@ fun SettingsRoute(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("앱 버전", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.settings_app_version_title), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(
-                    "1.0.0 (안드로이드 · 가민 전용)",
+                    stringResource(R.string.settings_app_version_value),
                     color = Color(0xFF888888),
                     fontSize = 12.sp,
                 )
@@ -102,7 +103,9 @@ fun SettingsRoute(
 
 @Composable
 private fun GarminCard(vm: SettingsViewModel) {
-    var statusText by remember { mutableStateOf("연결 안 됨") }
+    val disconnectedLabel = stringResource(R.string.settings_garmin_status_disconnected)
+    val launchedLabel = stringResource(R.string.settings_garmin_status_launched)
+    var statusText by remember { mutableStateOf(disconnectedLabel) }
     Surface(
         color = Color(0xFF0C0C0C),
         contentColor = Color.White,
@@ -113,31 +116,28 @@ private fun GarminCard(vm: SettingsViewModel) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("가민 워치 연결", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.settings_garmin_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                "가민 워치로 HYROX 운동을 기록하려면:\n" +
-                    "• Garmin Connect 앱이 폰에 설치·로그인되어 있어야 합니다\n" +
-                    "• 워치가 Garmin Connect에 페어링되어 있어야 합니다\n" +
-                    "• Connect IQ Store에서 HyroxSim 워치앱을 설치하세요",
+                stringResource(R.string.settings_garmin_instructions),
                 color = Color(0xFFAAAAAA),
                 fontSize = 12.sp,
             )
             Text(
-                text = "상태: ${vm.connectedDeviceName ?: statusText}",
+                text = stringResource(R.string.settings_garmin_status_prefix, vm.connectedDeviceName ?: statusText),
                 color = Color(0xFF888888),
                 fontSize = 12.sp,
             )
             Button(
                 onClick = {
                     vm.requestDeviceSelection()
-                    statusText = "Garmin Connect Mobile 실행됨"
+                    statusText = launchedLabel
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFFD700),
                     contentColor = Color.Black,
                 ),
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("기기 선택", fontWeight = FontWeight.Bold) }
+            ) { Text(stringResource(R.string.settings_garmin_pick_device), fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -193,29 +193,29 @@ private fun SensorPermissionsCard() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("센서 권한", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.settings_sensor_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
             PermissionRow(
-                label = "위치 (GPS)",
-                description = "Run / ROX Zone 구간 거리·페이스 측정",
+                label = stringResource(R.string.settings_permission_location_label),
+                description = stringResource(R.string.settings_permission_location_desc),
                 granted = locationGranted,
-                actionLabel = if (locationGranted) "허용됨" else "허용",
+                actionLabel = if (locationGranted) stringResource(R.string.settings_permission_granted) else stringResource(R.string.settings_permission_allow),
                 enabled = !locationGranted,
                 onClick = { locationLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) },
             )
 
             PermissionRow(
-                label = "심박수 (Health Connect)",
+                label = stringResource(R.string.settings_permission_hr_label),
                 description = if (hrAvailable) {
-                    "운동 중 실시간 HR 수집"
+                    stringResource(R.string.settings_permission_hr_desc)
                 } else {
-                    "Health Connect 미설치 — Play Store에서 설치하세요"
+                    stringResource(R.string.settings_permission_hr_missing)
                 },
                 granted = hrGranted,
                 actionLabel = when {
-                    !hrAvailable -> "미지원"
-                    hrGranted -> "허용됨"
-                    else -> "허용"
+                    !hrAvailable -> stringResource(R.string.settings_permission_unsupported)
+                    hrGranted -> stringResource(R.string.settings_permission_granted)
+                    else -> stringResource(R.string.settings_permission_allow)
                 },
                 enabled = hrAvailable && !hrGranted,
                 onClick = {

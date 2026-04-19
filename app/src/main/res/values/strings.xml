@@ -11,10 +11,10 @@
     <string name="action_history">History</string>
     <string name="action_history_hint">Completed workouts</string>
     <string name="action_recent">RECENT</string>
-    <string name="empty_history">완료한 운동이 없습니다</string>
-    <string name="tab_home">홈</string>
-    <string name="tab_history">기록</string>
-    <string name="tab_settings">설정</string>
+    <string name="empty_history">No workouts yet</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
     <string name="builder_title">Builder</string>
     <string name="builder_name_label">Name</string>
     <string name="builder_division">DIVISION</string>

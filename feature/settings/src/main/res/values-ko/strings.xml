@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back">뒤로</string>
+    <string name="settings_title">설정</string>
+    <string name="settings_app_version_title">앱 버전</string>
+    <string name="settings_app_version_value">1.0.0 (안드로이드 · 가민 전용)</string>
+
+    <string name="settings_garmin_title">가민 워치 연결</string>
+    <string name="settings_garmin_instructions">가민 워치로 HYROX 운동을 기록하려면:\n• Garmin Connect 앱이 폰에 설치·로그인되어 있어야 합니다\n• 워치가 Garmin Connect에 페어링되어 있어야 합니다\n• Connect IQ Store에서 HyroxSim 워치앱을 설치하세요</string>
+    <string name="settings_garmin_status_prefix">상태: %1$s</string>
+    <string name="settings_garmin_status_disconnected">연결 안 됨</string>
+    <string name="settings_garmin_status_launched">Garmin Connect Mobile 실행됨</string>
+    <string name="settings_garmin_pick_device">기기 선택</string>
+
+    <string name="settings_sensor_title">센서 권한</string>
+    <string name="settings_permission_location_label">위치 (GPS)</string>
+    <string name="settings_permission_location_desc">Run / ROX Zone 구간 거리·페이스 측정</string>
+    <string name="settings_permission_hr_label">심박수 (Health Connect)</string>
+    <string name="settings_permission_hr_desc">운동 중 실시간 HR 수집</string>
+    <string name="settings_permission_hr_missing">Health Connect 미설치 — Play Store에서 설치하세요</string>
+    <string name="settings_permission_granted">허용됨</string>
+    <string name="settings_permission_allow">허용</string>
+    <string name="settings_permission_unsupported">미지원</string>
+</resources>

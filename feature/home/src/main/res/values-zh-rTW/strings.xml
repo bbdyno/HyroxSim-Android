@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_brand_title">HyroxSim</string>
+    <string name="home_brand_subtitle">HYROX 模擬器</string>
+    <string name="home_section_select_division">選擇組別</string>
+    <string name="home_section_select_division_hint">滑動選擇 HYROX 預設</string>
+    <string name="home_division_summary">跑步 8 · 工作站 8</string>
+    <string name="home_division_details">詳情 →</string>
+    <string name="home_section_saved_templates">已儲存範本</string>
+    <string name="home_section_saved_templates_hint">自訂訓練</string>
+    <string name="home_section_my_workouts">我的訓練</string>
+    <string name="home_action_create_custom">建立自訂</string>
+    <string name="home_action_create_custom_hint">打造專屬 HYROX</string>
+    <string name="home_action_history">歷史記錄</string>
+    <string name="home_action_history_hint">已完成訓練</string>
+    <string name="home_recent_badge">最近</string>
+    <string name="home_template_segments_on">%1$d 段 · ROX 開啟</string>
+    <string name="home_template_segments_off">%1$d 段 · ROX 關閉</string>
+
+    <string name="detail_back">返回</string>
+    <string name="detail_loading">載入中…</string>
+    <string name="detail_start_workout">開始訓練</string>
+    <string name="detail_goals_title">目標</string>
+    <string name="detail_goal_prefix">目標 %1$s</string>
+    <string name="detail_goal_hint_set">設定完成時間</string>
+    <string name="detail_goal_hint_edit">編輯分段目標</string>
+    <string name="detail_rox_zone_title">ROX ZONE</string>
+    <string name="detail_rox_zone_on">在跑步和工作站之間加入過渡</string>
+    <string name="detail_rox_zone_off">跑步 → 工作站 直連</string>
+    <string name="detail_course_title">課程</string>
+    <string name="detail_title_summary">%1$d 個工作站 · %2$.1f 公里跑步 · 約 %3$d 分鐘</string>
+    <string name="detail_segment_run">跑步 %1$d 公里</string>
+    <string name="detail_segment_rox">ROX Zone</string>
+    <string name="detail_segment_station_fallback">工作站</string>
+</resources>

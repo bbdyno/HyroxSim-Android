@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back">返回</string>
+    <string name="settings_title">設定</string>
+    <string name="settings_app_version_title">應用版本</string>
+    <string name="settings_app_version_value">1.0.0 (Android · 僅 Garmin)</string>
+
+    <string name="settings_garmin_title">連接 Garmin 手錶</string>
+    <string name="settings_garmin_instructions">使用 Garmin 手錶記錄 HYROX 訓練:\n• 在此手機安裝並登入 Garmin Connect\n• 將手錶與 Garmin Connect 配對\n• 從 Connect IQ 商店安裝 HyroxSim 手錶應用</string>
+    <string name="settings_garmin_status_prefix">狀態: %1$s</string>
+    <string name="settings_garmin_status_disconnected">未連接</string>
+    <string name="settings_garmin_status_launched">Garmin Connect 已啟動</string>
+    <string name="settings_garmin_pick_device">選擇裝置</string>
+
+    <string name="settings_sensor_title">感測器權限</string>
+    <string name="settings_permission_location_label">位置 (GPS)</string>
+    <string name="settings_permission_location_desc">跑步 / ROX Zone 距離和配速追蹤</string>
+    <string name="settings_permission_hr_label">心率 (Health Connect)</string>
+    <string name="settings_permission_hr_desc">訓練期間即時心率擷取</string>
+    <string name="settings_permission_hr_missing">未安裝 Health Connect — 請從 Play Store 安裝</string>
+    <string name="settings_permission_granted">已允許</string>
+    <string name="settings_permission_allow">允許</string>
+    <string name="settings_permission_unsupported">不支援</string>
+</resources>

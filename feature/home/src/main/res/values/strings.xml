@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_brand_title">HyroxSim</string>
+    <string name="home_brand_subtitle">HYROX Simulator</string>
+    <string name="home_section_select_division">SELECT DIVISION</string>
+    <string name="home_section_select_division_hint">Swipe to pick a HYROX preset</string>
+    <string name="home_division_summary">8 runs · 8 stations</string>
+    <string name="home_division_details">DETAILS →</string>
+    <string name="home_section_saved_templates">SAVED TEMPLATES</string>
+    <string name="home_section_saved_templates_hint">Custom workouts</string>
+    <string name="home_section_my_workouts">MY WORKOUTS</string>
+    <string name="home_action_create_custom">Create Custom</string>
+    <string name="home_action_create_custom_hint">Build your own HYROX</string>
+    <string name="home_action_history">History</string>
+    <string name="home_action_history_hint">Completed workouts</string>
+    <string name="home_recent_badge">RECENT</string>
+    <string name="home_template_segments_on">%1$d segments · ROX on</string>
+    <string name="home_template_segments_off">%1$d segments · ROX off</string>
+
+    <string name="detail_back">Back</string>
+    <string name="detail_loading">Loading…</string>
+    <string name="detail_start_workout">Start Workout</string>
+    <string name="detail_goals_title">GOALS</string>
+    <string name="detail_goal_prefix">GOAL %1$s</string>
+    <string name="detail_goal_hint_set">Set a finish time</string>
+    <string name="detail_goal_hint_edit">Edit segment targets</string>
+    <string name="detail_rox_zone_title">ROX ZONE</string>
+    <string name="detail_rox_zone_on">Transitions between Run and Station</string>
+    <string name="detail_rox_zone_off">Direct Run → Station</string>
+    <string name="detail_course_title">COURSE</string>
+    <string name="detail_title_summary">%1$d stations · %2$.1f km run · ~%3$d min</string>
+    <string name="detail_segment_run">Run %1$dkm</string>
+    <string name="detail_segment_rox">ROX Zone</string>
+    <string name="detail_segment_station_fallback">Station</string>
+</resources>

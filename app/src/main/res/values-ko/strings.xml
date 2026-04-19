@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HyroxSim</string>
+    <string name="app_subtitle">HYROX 시뮬레이터</string>
+    <string name="empty_history">완료한 운동이 없습니다</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_history">기록</string>
+    <string name="tab_settings">설정</string>
+</resources>

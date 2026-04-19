@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_back">戻る</string>
+    <string name="settings_title">設定</string>
+    <string name="settings_app_version_title">アプリバージョン</string>
+    <string name="settings_app_version_value">1.0.0 (Android · Garmin専用)</string>
+
+    <string name="settings_garmin_title">Garmin時計を接続</string>
+    <string name="settings_garmin_instructions">Garmin時計でHYROXワークアウトを記録するには:\n• このスマホにGarmin Connectアプリをインストール・ログインしてください\n• 時計をGarmin Connectとペアリングしてください\n• Connect IQ StoreからHyroxSim時計アプリをインストールしてください</string>
+    <string name="settings_garmin_status_prefix">ステータス: %1$s</string>
+    <string name="settings_garmin_status_disconnected">未接続</string>
+    <string name="settings_garmin_status_launched">Garmin Connect Mobile起動済み</string>
+    <string name="settings_garmin_pick_device">デバイス選択</string>
+
+    <string name="settings_sensor_title">センサー権限</string>
+    <string name="settings_permission_location_label">位置情報 (GPS)</string>
+    <string name="settings_permission_location_desc">ラン / ROX Zone区間の距離・ペース計測</string>
+    <string name="settings_permission_hr_label">心拍数 (Health Connect)</string>
+    <string name="settings_permission_hr_desc">ワークアウト中のリアルタイム心拍収集</string>
+    <string name="settings_permission_hr_missing">Health Connect未インストール — Play Storeからインストールしてください</string>
+    <string name="settings_permission_granted">許可済み</string>
+    <string name="settings_permission_allow">許可</string>
+    <string name="settings_permission_unsupported">非対応</string>
+</resources>

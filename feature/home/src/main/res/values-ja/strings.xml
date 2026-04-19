@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_brand_title">HyroxSim</string>
+    <string name="home_brand_subtitle">HYROX シミュレーター</string>
+    <string name="home_section_select_division">ディビジョン選択</string>
+    <string name="home_section_select_division_hint">スワイプしてHYROXプリセットを選択</string>
+    <string name="home_division_summary">ラン 8 · ステーション 8</string>
+    <string name="home_division_details">詳細 →</string>
+    <string name="home_section_saved_templates">保存されたテンプレート</string>
+    <string name="home_section_saved_templates_hint">カスタムワークアウト</string>
+    <string name="home_section_my_workouts">マイワークアウト</string>
+    <string name="home_action_create_custom">カスタム作成</string>
+    <string name="home_action_create_custom_hint">自分だけのHYROXを構築</string>
+    <string name="home_action_history">履歴</string>
+    <string name="home_action_history_hint">完了したワークアウト</string>
+    <string name="home_recent_badge">最近</string>
+    <string name="home_template_segments_on">セグメント %1$d · ROX オン</string>
+    <string name="home_template_segments_off">セグメント %1$d · ROX オフ</string>
+
+    <string name="detail_back">戻る</string>
+    <string name="detail_loading">読み込み中…</string>
+    <string name="detail_start_workout">ワークアウト開始</string>
+    <string name="detail_goals_title">目標</string>
+    <string name="detail_goal_prefix">目標 %1$s</string>
+    <string name="detail_goal_hint_set">フィニッシュタイム設定</string>
+    <string name="detail_goal_hint_edit">セグメント目標を編集</string>
+    <string name="detail_rox_zone_title">ROX ZONE</string>
+    <string name="detail_rox_zone_on">ランとステーションの間にトランジション</string>
+    <string name="detail_rox_zone_off">ラン → ステーション直行</string>
+    <string name="detail_course_title">コース</string>
+    <string name="detail_title_summary">ステーション %1$d · ラン %2$.1fkm · 約 %3$d分</string>
+    <string name="detail_segment_run">ラン %1$dkm</string>
+    <string name="detail_segment_rox">ROX Zone</string>
+    <string name="detail_segment_station_fallback">ステーション</string>
+</resources>

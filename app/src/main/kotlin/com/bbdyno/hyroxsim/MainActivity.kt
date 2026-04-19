@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -77,8 +78,8 @@ private fun HyroxRootNav() {
             if (showBottomBar) {
                 NavigationBar(containerColor = Color(0xFF0A0A0A)) {
                     listOf(
-                        Triple(Route.HOME, "Home", Icons.Default.Home),
-                        Triple(Route.SETTINGS, "Settings", Icons.Default.Settings),
+                        Triple(Route.HOME, stringResource(R.string.tab_home), Icons.Default.Home),
+                        Triple(Route.SETTINGS, stringResource(R.string.tab_settings), Icons.Default.Settings),
                     ).forEach { (route, label, icon) ->
                         NavigationBarItem(
                             selected = currentRoute == route,

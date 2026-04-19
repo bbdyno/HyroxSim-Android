@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_brand_title">HyroxSim</string>
+    <string name="home_brand_subtitle">HYROX 시뮬레이터</string>
+    <string name="home_section_select_division">디비전 선택</string>
+    <string name="home_section_select_division_hint">스와이프해서 HYROX 프리셋을 선택하세요</string>
+    <string name="home_division_summary">런 8 · 스테이션 8</string>
+    <string name="home_division_details">자세히 →</string>
+    <string name="home_section_saved_templates">저장된 템플릿</string>
+    <string name="home_section_saved_templates_hint">커스텀 운동</string>
+    <string name="home_section_my_workouts">내 운동</string>
+    <string name="home_action_create_custom">커스텀 만들기</string>
+    <string name="home_action_create_custom_hint">나만의 HYROX 구성</string>
+    <string name="home_action_history">기록</string>
+    <string name="home_action_history_hint">완료한 운동</string>
+    <string name="home_recent_badge">최근</string>
+    <string name="home_template_segments_on">세그먼트 %1$d · ROX 켜짐</string>
+    <string name="home_template_segments_off">세그먼트 %1$d · ROX 꺼짐</string>
+
+    <string name="detail_back">뒤로</string>
+    <string name="detail_loading">불러오는 중…</string>
+    <string name="detail_start_workout">운동 시작</string>
+    <string name="detail_goals_title">목표</string>
+    <string name="detail_goal_prefix">목표 %1$s</string>
+    <string name="detail_goal_hint_set">완료 시간 설정</string>
+    <string name="detail_goal_hint_edit">세그먼트 목표 수정</string>
+    <string name="detail_rox_zone_title">ROX ZONE</string>
+    <string name="detail_rox_zone_on">런과 스테이션 사이 전환 구간 포함</string>
+    <string name="detail_rox_zone_off">런 → 스테이션 직행</string>
+    <string name="detail_course_title">코스</string>
+    <string name="detail_title_summary">스테이션 %1$d · 런 %2$.1fkm · 약 %3$d분</string>
+    <string name="detail_segment_run">런 %1$dkm</string>
+    <string name="detail_segment_rox">ROX Zone</string>
+    <string name="detail_segment_station_fallback">스테이션</string>
+</resources>
