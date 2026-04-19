@@ -1,7 +1,11 @@
 package com.bbdyno.hyroxsim.feature.active
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,8 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -244,20 +254,13 @@ private fun ControlsRow(
             contentColor = Color.White,
         )
 
-        Button(
-            onClick = onAdvance,
+        SlideToAdvance(
             enabled = engineStateLabel == "running",
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFD700),
-                contentColor = Color.Black,
-            ),
-            shape = RoundedCornerShape(16.dp),
+            onAdvance = onAdvance,
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp),
-        ) {
-            Text("NEXT →", fontWeight = FontWeight.Bold)
-        }
+        )
 
         CircleActionButton(
             label = "■",
@@ -284,6 +287,67 @@ private fun CircleActionButton(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(label, color = contentColor, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+/**
+ * Slide-to-advance control. Dragging past ~70% of the track width fires
+ * [onAdvance] and snaps the knob back. Matches iOS AdvanceControl so
+ * accidental taps don't skip segments.
+ */
+@Composable
+private fun SlideToAdvance(
+    enabled: Boolean,
+    onAdvance: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var trackWidthPx by remember { mutableIntStateOf(0) }
+    var offsetPx by remember { mutableFloatStateOf(0f) }
+    val threshold = trackWidthPx * 0.7f
+
+    Surface(
+        color = if (enabled) Color(0xFF1A1A1A) else Color(0xFF111111),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .onSizeChanged { size -> trackWidthPx = size.width },
+    ) {
+        Box(contentAlignment = Alignment.CenterStart) {
+            Text(
+                if (enabled) "SLIDE TO ADVANCE →" else "PAUSED",
+                color = Color(0xFF888888),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 72.dp),
+            )
+            Surface(
+                color = if (enabled) Color(0xFFFFD700) else Color(0xFF333333),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(48.dp)
+                    .offset { IntOffset(offsetPx.toInt(), 0) }
+                    .draggable(
+                        enabled = enabled,
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            offsetPx = (offsetPx + delta)
+                                .coerceIn(0f, (trackWidthPx - 56).coerceAtLeast(0).toFloat())
+                        },
+                        onDragStopped = {
+                            if (offsetPx >= threshold && threshold > 0) {
+                                onAdvance()
+                            }
+                            offsetPx = 0f
+                        },
+                    ),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("→", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
