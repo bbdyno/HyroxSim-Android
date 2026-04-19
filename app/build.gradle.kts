@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:history"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:builder"))
+    implementation(project(":feature:summary"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

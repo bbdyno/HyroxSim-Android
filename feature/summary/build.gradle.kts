@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.bbdyno.hyroxsim.feature.home"
+    namespace = "com.bbdyno.hyroxsim.feature.summary"
     compileSdk = 34
     defaultConfig { minSdk = 26 }
     buildFeatures { compose = true }
@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":core:persistence"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

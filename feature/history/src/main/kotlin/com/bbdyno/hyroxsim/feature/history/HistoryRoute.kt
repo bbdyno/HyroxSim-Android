@@ -30,6 +30,8 @@ import java.util.Locale
 @Composable
 fun HistoryRoute(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
+    onOpenSummary: (String) -> Unit = {},
     vm: HistoryViewModel = hiltViewModel(),
 ) {
     val rows by vm.summaries.collectAsState(initial = emptyList())
@@ -60,6 +62,7 @@ fun HistoryRoute(
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(rows) { s ->
                 Surface(
+                    onClick = { onOpenSummary(s.id) },
                     color = Color(0xFF0C0C0C),
                     contentColor = Color.White,
                     shape = RoundedCornerShape(12.dp),

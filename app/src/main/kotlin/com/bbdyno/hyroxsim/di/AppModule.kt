@@ -2,8 +2,10 @@ package com.bbdyno.hyroxsim.di
 
 import android.content.Context
 import com.bbdyno.hyroxsim.core.persistence.HyroxDatabase
+import com.bbdyno.hyroxsim.core.persistence.dao.GoalDao
 import com.bbdyno.hyroxsim.core.persistence.dao.TemplateDao
 import com.bbdyno.hyroxsim.core.persistence.dao.WorkoutDao
+import com.bbdyno.hyroxsim.core.persistence.repository.GoalRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutRepository
 import com.bbdyno.hyroxsim.sync.garmin.GarminBridge
@@ -31,12 +33,19 @@ object AppModule {
     fun provideTemplateDao(db: HyroxDatabase): TemplateDao = db.templateDao()
 
     @Provides
+    fun provideGoalDao(db: HyroxDatabase): GoalDao = db.goalDao()
+
+    @Provides
     @Singleton
     fun provideWorkoutRepository(dao: WorkoutDao): WorkoutRepository = WorkoutRepository(dao)
 
     @Provides
     @Singleton
     fun provideTemplateRepository(dao: TemplateDao): TemplateRepository = TemplateRepository(dao)
+
+    @Provides
+    @Singleton
+    fun provideGoalRepository(dao: GoalDao): GoalRepository = GoalRepository(dao)
 
     @Provides
     @Singleton

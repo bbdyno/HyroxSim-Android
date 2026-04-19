@@ -39,6 +39,7 @@ import com.bbdyno.hyroxsim.core.domain.HyroxDivision
 @Composable
 fun BuilderRoute(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
     vm: BuilderViewModel = hiltViewModel(),
 ) {
     val ui by vm.ui.collectAsState()

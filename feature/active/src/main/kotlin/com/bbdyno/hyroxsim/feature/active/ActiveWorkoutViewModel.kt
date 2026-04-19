@@ -7,6 +7,7 @@ import com.bbdyno.hyroxsim.core.domain.HyroxDivision
 import com.bbdyno.hyroxsim.core.domain.WorkoutEngine
 import com.bbdyno.hyroxsim.core.domain.WorkoutSource
 import com.bbdyno.hyroxsim.core.domain.WorkoutTemplate
+import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -37,6 +38,7 @@ data class ActiveWorkoutUiState(
 @HiltViewModel
 class ActiveWorkoutViewModel @Inject constructor(
     private val repository: WorkoutRepository,
+    private val templates: TemplateRepository,
 ) : ViewModel() {
 
     private var engine: WorkoutEngine? = null
@@ -46,6 +48,17 @@ class ActiveWorkoutViewModel @Inject constructor(
     fun startForDivision(divisionRaw: String) {
         val division = HyroxDivision.fromRaw(divisionRaw) ?: return
         val template = WorkoutTemplate.hyroxPreset(division)
+        startForTemplate(template)
+    }
+
+    fun startForTemplate(templateId: String) {
+        viewModelScope.launch {
+            val template = templates.findById(templateId) ?: return@launch
+            startForTemplate(template)
+        }
+    }
+
+    private fun startForTemplate(template: WorkoutTemplate) {
         val eng = WorkoutEngine(template)
         engine = eng
         eng.start(nowMs())

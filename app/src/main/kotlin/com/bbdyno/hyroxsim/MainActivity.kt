@@ -6,27 +6,21 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.bbdyno.hyroxsim.feature.active.ActiveWorkoutRoute
 import com.bbdyno.hyroxsim.feature.builder.BuilderRoute
 import com.bbdyno.hyroxsim.feature.history.HistoryRoute
 import com.bbdyno.hyroxsim.feature.home.HomeRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
+import com.bbdyno.hyroxsim.feature.summary.SummaryRoute
+import com.bbdyno.hyroxsim.nav.Route
 import com.bbdyno.hyroxsim.ui.theme.HyroxTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,77 +31,76 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HyroxTheme {
-                HyroxRootScaffold()
+                HyroxRootNav()
             }
         }
     }
 }
 
-private enum class Tab(val label: String) {
-    Home("홈"),
-    Builder("만들기"),
-    History("기록"),
-    Settings("설정"),
-}
-
+/**
+ * Single NavController + push/pop stack — matches iOS UINavigationController
+ * UX. Home is root; Builder/History/Settings push on top. Active workout
+ * and summary are full-screen pushed destinations.
+ */
 @Composable
-private fun HyroxRootScaffold() {
-    var tab by remember { mutableStateOf(Tab.Home) }
-    var activeTemplateDivision by remember { mutableStateOf<String?>(null) }
-
-    Scaffold(
-        bottomBar = {
-            if (activeTemplateDivision == null) {
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = tab == Tab.Home,
-                        onClick = { tab = Tab.Home },
-                        label = { Text(Tab.Home.label) },
-                        icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    )
-                    NavigationBarItem(
-                        selected = tab == Tab.Builder,
-                        onClick = { tab = Tab.Builder },
-                        label = { Text(Tab.Builder.label) },
-                        icon = { Icon(Icons.Default.Build, contentDescription = null) },
-                    )
-                    NavigationBarItem(
-                        selected = tab == Tab.History,
-                        onClick = { tab = Tab.History },
-                        label = { Text(Tab.History.label) },
-                        icon = { Icon(Icons.Default.List, contentDescription = null) },
-                    )
-                    NavigationBarItem(
-                        selected = tab == Tab.Settings,
-                        onClick = { tab = Tab.Settings },
-                        label = { Text(Tab.Settings.label) },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                    )
-                }
+private fun HyroxRootNav() {
+    val navController = rememberNavController()
+    Scaffold { inner ->
+        NavHost(
+            navController = navController,
+            startDestination = Route.HOME,
+            modifier = Modifier.fillMaxSize().padding(inner),
+        ) {
+            composable(Route.HOME) {
+                HomeRoute(
+                    onStartDivision = { navController.navigate(Route.activeWorkout(it)) },
+                    onStartTemplate = { navController.navigate(Route.activeTemplate(it)) },
+                    onOpenBuilder = { navController.navigate(Route.BUILDER) },
+                    onOpenHistory = { navController.navigate(Route.HISTORY) },
+                    onOpenSettings = { navController.navigate(Route.SETTINGS) },
+                    onOpenSummary = { navController.navigate(Route.summary(it)) },
+                )
             }
-        },
-    ) { inner ->
-        val currentDivision = activeTemplateDivision
-        if (currentDivision != null) {
-            ActiveWorkoutRoute(
-                modifier = Modifier.fillMaxSize().padding(inner),
-                divisionRaw = currentDivision,
-                onFinished = { activeTemplateDivision = null },
-            )
-        } else {
-            when (tab) {
-                Tab.Home -> HomeRoute(
-                    modifier = Modifier.fillMaxSize().padding(inner),
-                    onStartWorkout = { divisionRaw -> activeTemplateDivision = divisionRaw },
+            composable(Route.BUILDER) {
+                BuilderRoute(onBack = { navController.popBackStack() })
+            }
+            composable(Route.HISTORY) {
+                HistoryRoute(
+                    onBack = { navController.popBackStack() },
+                    onOpenSummary = { navController.navigate(Route.summary(it)) },
                 )
-                Tab.Builder -> BuilderRoute(
-                    modifier = Modifier.fillMaxSize().padding(inner),
+            }
+            composable(Route.SETTINGS) {
+                SettingsRoute(onBack = { navController.popBackStack() })
+            }
+            composable(
+                route = Route.ACTIVE_WORKOUT,
+                arguments = listOf(navArgument("divisionRaw") { type = NavType.StringType }),
+            ) { backStack ->
+                val divisionRaw = backStack.arguments?.getString("divisionRaw") ?: return@composable
+                ActiveWorkoutRoute(
+                    divisionRaw = divisionRaw,
+                    onFinished = { navController.popBackStack(Route.HOME, inclusive = false) },
                 )
-                Tab.History -> HistoryRoute(
-                    modifier = Modifier.fillMaxSize().padding(inner),
+            }
+            composable(
+                route = Route.ACTIVE_WORKOUT_FROM_TEMPLATE,
+                arguments = listOf(navArgument("templateId") { type = NavType.StringType }),
+            ) { backStack ->
+                val templateId = backStack.arguments?.getString("templateId") ?: return@composable
+                ActiveWorkoutRoute(
+                    templateId = templateId,
+                    onFinished = { navController.popBackStack(Route.HOME, inclusive = false) },
                 )
-                Tab.Settings -> SettingsRoute(
-                    modifier = Modifier.fillMaxSize().padding(inner),
+            }
+            composable(
+                route = Route.SUMMARY,
+                arguments = listOf(navArgument("workoutId") { type = NavType.StringType }),
+            ) { backStack ->
+                val workoutId = backStack.arguments?.getString("workoutId") ?: return@composable
+                SummaryRoute(
+                    workoutId = workoutId,
+                    onBack = { navController.popBackStack() },
                 )
             }
         }

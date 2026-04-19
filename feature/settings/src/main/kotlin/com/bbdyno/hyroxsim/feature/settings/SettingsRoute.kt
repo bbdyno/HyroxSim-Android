@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SettingsRoute(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
     vm: SettingsViewModel = hiltViewModel(),
 ) {
     var statusText by remember { mutableStateOf("연결 안 됨") }

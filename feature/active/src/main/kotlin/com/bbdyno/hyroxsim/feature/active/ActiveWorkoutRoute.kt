@@ -29,14 +29,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun ActiveWorkoutRoute(
     modifier: Modifier = Modifier,
-    divisionRaw: String,
+    divisionRaw: String? = null,
+    templateId: String? = null,
     onFinished: () -> Unit,
     vm: ActiveWorkoutViewModel = hiltViewModel(),
 ) {
     val ui by vm.ui.collectAsState()
 
-    LaunchedEffect(divisionRaw) {
-        vm.startForDivision(divisionRaw)
+    LaunchedEffect(divisionRaw, templateId) {
+        when {
+            templateId != null -> vm.startForTemplate(templateId)
+            divisionRaw != null -> vm.startForDivision(divisionRaw)
+        }
     }
 
     Box(
