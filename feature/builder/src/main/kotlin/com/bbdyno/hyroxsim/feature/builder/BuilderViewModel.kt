@@ -3,6 +3,8 @@ package com.bbdyno.hyroxsim.feature.builder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bbdyno.hyroxsim.core.domain.HyroxDivision
+import com.bbdyno.hyroxsim.core.domain.StationKind
+import com.bbdyno.hyroxsim.core.domain.WorkoutSegment
 import com.bbdyno.hyroxsim.core.domain.WorkoutTemplate
 import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.sync.garmin.GarminTemplateSyncService
@@ -17,18 +19,26 @@ data class BuilderUiState(
     val name: String = "My HYROX Workout",
     val division: HyroxDivision = HyroxDivision.MenOpenSingle,
     val usesRoxZone: Boolean = true,
+    /** Logical segments (Run + Station pairs) — ROX Zones are materialised at save time. */
+    val logicalSegments: List<WorkoutSegment> = defaultLogical(HyroxDivision.MenOpenSingle),
     val saving: Boolean = false,
     val savedMessage: String? = null,
-)
+) {
+    companion object {
+        fun defaultLogical(division: HyroxDivision): List<WorkoutSegment> =
+            WorkoutTemplate.hyroxPreset(division).logicalSegments
+    }
+}
 
 /**
- * ViewModel for the custom workout builder. MVP scope: pick division +
- * toggle ROX Zone. Segment-level editing (reps/weights/custom stations)
- * is TBD — mirrors iOS staged UX.
+ * ViewModel for the custom workout builder. Supports:
+ * - Division switching (resets logical segments to division's preset)
+ * - ROX Zone toggle (materialised at save time)
+ * - Per-segment operations: add/delete/reorder
  *
- * On save: persist via [TemplateRepository] *and* push to the Garmin
- * watch via [GarminTemplateSyncService] so the watch's TemplateStore
- * receives the same payload.
+ * Segment editing is scoped to the *logical* list (run + stations without
+ * ROX zones). ROX zones are re-inserted automatically on save via
+ * `WorkoutTemplate.materialize` when `usesRoxZone=true`.
  */
 @HiltViewModel
 class BuilderViewModel @Inject constructor(
@@ -46,11 +56,63 @@ class BuilderViewModel @Inject constructor(
     }
 
     fun onDivisionChanged(division: HyroxDivision) {
-        _ui.value = _ui.value.copy(division = division)
+        _ui.value = _ui.value.copy(
+            division = division,
+            logicalSegments = BuilderUiState.defaultLogical(division),
+        )
     }
 
     fun onRoxZoneToggled(enabled: Boolean) {
         _ui.value = _ui.value.copy(usesRoxZone = enabled)
+    }
+
+    fun onAddRun() {
+        val state = _ui.value
+        _ui.value = state.copy(
+            logicalSegments = state.logicalSegments + WorkoutSegment.run(1000.0),
+        )
+    }
+
+    fun onAddStation(kind: StationKind = StationKind.SkiErg) {
+        val state = _ui.value
+        _ui.value = state.copy(
+            logicalSegments = state.logicalSegments + WorkoutSegment.station(kind),
+        )
+    }
+
+    fun onDeleteSegment(index: Int) {
+        val state = _ui.value
+        if (index !in state.logicalSegments.indices) return
+        _ui.value = state.copy(
+            logicalSegments = state.logicalSegments.filterIndexed { i, _ -> i != index },
+        )
+    }
+
+    fun onMoveUp(index: Int) {
+        val state = _ui.value
+        if (index <= 0 || index >= state.logicalSegments.size) return
+        val mutable = state.logicalSegments.toMutableList()
+        val tmp = mutable[index - 1]
+        mutable[index - 1] = mutable[index]
+        mutable[index] = tmp
+        _ui.value = state.copy(logicalSegments = mutable)
+    }
+
+    fun onMoveDown(index: Int) {
+        val state = _ui.value
+        if (index < 0 || index >= state.logicalSegments.lastIndex) return
+        val mutable = state.logicalSegments.toMutableList()
+        val tmp = mutable[index + 1]
+        mutable[index + 1] = mutable[index]
+        mutable[index] = tmp
+        _ui.value = state.copy(logicalSegments = mutable)
+    }
+
+    fun onResetToPreset() {
+        val state = _ui.value
+        _ui.value = state.copy(
+            logicalSegments = BuilderUiState.defaultLogical(state.division),
+        )
     }
 
     fun onSave() {
@@ -58,14 +120,14 @@ class BuilderViewModel @Inject constructor(
         val state = _ui.value
         _ui.value = state.copy(saving = true, savedMessage = null)
         viewModelScope.launch {
-            val preset = WorkoutTemplate.hyroxPreset(state.division)
             val segments = WorkoutTemplate.materialize(
-                logicalSegments = preset.logicalSegments,
+                logicalSegments = state.logicalSegments,
                 usesRoxZone = state.usesRoxZone,
             )
-            val template = preset.copy(
+            val template = WorkoutTemplate(
                 id = java.util.UUID.randomUUID().toString(),
                 name = state.name.ifBlank { "HYROX ${state.division.displayName}" },
+                division = state.division,
                 segments = segments,
                 usesRoxZone = state.usesRoxZone,
                 isBuiltIn = false,
