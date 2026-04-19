@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+/**
+ * Active workout matching iOS `ActiveWorkoutViewController`:
+ * segment label + counter, large mono timer, goal card with deltas,
+ * controls row (pause / advance / end).
+ */
 @Composable
 fun ActiveWorkoutRoute(
     modifier: Modifier = Modifier,
@@ -44,93 +54,203 @@ fun ActiveWorkoutRoute(
     }
 
     Box(
-        modifier = modifier.background(Color.Black),
-        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black),
     ) {
         if (ui.finished) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text("FINISHED", color = Color(0xFFFFD700), fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold)
-                Text(formatMs(ui.totalElapsedMs), color = Color.White, fontSize = 36.sp)
-                Button(onClick = onFinished) { Text("확인") }
-            }
+            FinishedView(totalMs = ui.totalElapsedMs, onOk = onFinished)
             return@Box
         }
 
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(20.dp),
         ) {
             Text(
-                text = "${ui.currentSegmentIndex + 1} / ${ui.totalSegments}",
+                "${ui.currentSegmentIndex + 1} / ${ui.totalSegments}",
                 color = Color(0xFFAAAAAA),
                 fontSize = 13.sp,
             )
             Text(
-                text = ui.segmentLabel,
+                ui.segmentLabel,
                 color = Color(0xFFFFD700),
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
             )
+
             Text(
-                text = formatMs(ui.segmentElapsedMs),
+                formatMs(ui.segmentElapsedMs),
                 color = Color.White,
-                fontSize = 64.sp,
+                fontSize = 80.sp,
                 fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(vertical = 8.dp),
             )
+
             Text(
-                text = "Total ${formatMs(ui.totalElapsedMs)}",
+                "TOTAL ${formatMs(ui.totalElapsedMs)}",
                 color = Color(0xFF888888),
-                fontSize = 14.sp,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
             )
+
+            GoalCard(ui = ui)
+
             ui.nextLabel?.let {
                 Text(
-                    text = "→ $it",
+                    "→ $it",
                     color = Color(0xFF666666),
                     fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
+
             if (ui.engineStateLabel == "paused") {
-                Text("PAUSED", color = Color(0xFFFF3B30), fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold)
+                Text(
+                    "PAUSED",
+                    color = Color(0xFFFF3B30),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                )
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
-            ) {
-                Button(
-                    onClick = vm::onAdvance,
-                    enabled = ui.engineStateLabel == "running",
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFD700),
-                        contentColor = Color.Black,
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f),
-                ) { Text("Next", fontWeight = FontWeight.Bold) }
+            Spacer(Modifier.weight(1f))
 
-                if (ui.engineStateLabel == "running") {
-                    OutlinedButton(
-                        onClick = vm::onPause,
-                        modifier = Modifier.weight(1f),
-                    ) { Text("Pause") }
-                } else if (ui.engineStateLabel == "paused") {
-                    OutlinedButton(
-                        onClick = vm::onResume,
-                        modifier = Modifier.weight(1f),
-                    ) { Text("Resume") }
-                }
-            }
-            OutlinedButton(
-                onClick = { vm.onEnd(onFinished) },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            ) { Text("End workout") }
+            ControlsRow(
+                engineStateLabel = ui.engineStateLabel,
+                onAdvance = vm::onAdvance,
+                onPause = vm::onPause,
+                onResume = vm::onResume,
+                onEnd = { vm.onEnd { onFinished() } },
+            )
         }
+    }
+}
+
+@Composable
+private fun GoalCard(ui: ActiveWorkoutUiState) {
+    Surface(
+        color = Color(0xFF0C0C0C),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            GoalRow(label = "SEG", target = ui.segmentTargetMs, deltaMs = ui.segmentDeltaMs)
+            GoalRow(label = "TOTAL", target = ui.totalTargetMs, deltaMs = ui.totalDeltaMs)
+        }
+    }
+}
+
+@Composable
+private fun GoalRow(label: String, target: Long, deltaMs: Long) {
+    val deltaColor = if (deltaMs > 0) Color(0xFFFF3B30) else Color(0xFFFFD700)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            label,
+            color = Color(0xFFFFD700),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.width(42.dp),
+        )
+        Text(
+            "target ${formatMs(target)}",
+            color = Color(0xFFAAAAAA),
+            fontSize = 12.sp,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            formatDeltaMs(deltaMs),
+            color = deltaColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun ControlsRow(
+    engineStateLabel: String,
+    onAdvance: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onEnd: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        CircleActionButton(
+            label = if (engineStateLabel == "paused") "▶" else "⏸",
+            onClick = { if (engineStateLabel == "paused") onResume() else onPause() },
+            color = Color(0xFF222222),
+            contentColor = Color.White,
+        )
+
+        Button(
+            onClick = onAdvance,
+            enabled = engineStateLabel == "running",
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFFD700),
+                contentColor = Color.Black,
+            ),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+        ) {
+            Text("NEXT →", fontWeight = FontWeight.Bold)
+        }
+
+        CircleActionButton(
+            label = "■",
+            onClick = onEnd,
+            color = Color(0xFFFF3B30),
+            contentColor = Color.White,
+        )
+    }
+}
+
+@Composable
+private fun CircleActionButton(
+    label: String,
+    onClick: () -> Unit,
+    color: Color,
+    contentColor: Color,
+) {
+    Surface(
+        onClick = onClick,
+        color = color,
+        contentColor = contentColor,
+        shape = CircleShape,
+        modifier = Modifier.size(56.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(label, color = contentColor, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun FinishedView(totalMs: Long, onOk: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("FINISHED", color = Color(0xFFFFD700), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(
+            formatMs(totalMs),
+            color = Color.White,
+            fontSize = 44.sp,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.padding(vertical = 12.dp),
+        )
+        OutlinedButton(onClick = onOk) { Text("Done") }
     }
 }
 
@@ -140,4 +260,10 @@ private fun formatMs(ms: Long): String {
     val m = (totalSec % 3600) / 60
     val s = totalSec % 60
     return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
+}
+
+private fun formatDeltaMs(ms: Long): String {
+    val sign = if (ms >= 0) "+" else "-"
+    val abs = if (ms >= 0) ms else -ms
+    return sign + formatMs(abs)
 }
