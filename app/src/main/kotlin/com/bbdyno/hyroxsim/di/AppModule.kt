@@ -1,6 +1,7 @@
 package com.bbdyno.hyroxsim.di
 
 import android.content.Context
+import com.bbdyno.hyroxsim.core.domain.PacePlanner
 import com.bbdyno.hyroxsim.core.persistence.HyroxDatabase
 import com.bbdyno.hyroxsim.core.persistence.dao.GoalDao
 import com.bbdyno.hyroxsim.core.persistence.dao.TemplateDao
@@ -62,4 +63,8 @@ object AppModule {
     @Singleton
     fun provideGarminGoalSyncService(bridge: GarminBridge): GarminGoalSyncService =
         GarminGoalSyncService(bridge)
+
+    @Provides
+    @Singleton
+    fun providePacePlanner(): PacePlanner = PacePlanner.loadBundled()
 }

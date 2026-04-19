@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,7 +76,12 @@ fun HomeRoute(
             }
 
             item { SectionLabel("SELECT DIVISION", "Swipe to pick a HYROX preset") }
-            item { DivisionPager(onPickDivision = onStartDivision) }
+            item {
+                DivisionPager(
+                    onPickDivision = onStartDivision,
+                    onOpenGoal = { raw -> onOpenGoal("builtin:$raw") },
+                )
+            }
 
             if (ui.savedTemplates.isNotEmpty()) {
                 item { SectionLabel("SAVED TEMPLATES", "Custom workouts") }
@@ -158,7 +164,10 @@ private fun RecentCard(summary: WorkoutSummary, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DivisionPager(onPickDivision: (String) -> Unit) {
+private fun DivisionPager(
+    onPickDivision: (String) -> Unit,
+    onOpenGoal: (String) -> Unit,
+) {
     val divisions = HyroxDivision.entries.toList()
     val pagerState = rememberPagerState(pageCount = { divisions.size })
 
@@ -173,8 +182,11 @@ private fun DivisionPager(onPickDivision: (String) -> Unit) {
                 .height(170.dp),
         ) { pageIndex ->
             val division = divisions[pageIndex]
+            // Card surface stays non-clickable at the top level so the GOAL
+            // and START actions own their own hit boxes. Tapping the
+            // division title area is a no-op by design — users use the
+            // explicit buttons.
             Surface(
-                onClick = { onPickDivision(division.raw) },
                 color = Color(0xFF111111),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(18.dp),
@@ -202,12 +214,27 @@ private fun DivisionPager(onPickDivision: (String) -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("8 runs · 8 stations", color = Color(0xFFAAAAAA), fontSize = 12.sp)
                         Box(modifier = Modifier.weight(1f))
-                        Text(
-                            "START →",
-                            color = Color(0xFFFFD700),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        androidx.compose.material3.TextButton(
+                            onClick = { onOpenGoal(division.raw) },
+                        ) {
+                            Text(
+                                "GOAL",
+                                color = Color(0xFFFFD700),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        androidx.compose.material3.TextButton(
+                            onClick = { onPickDivision(division.raw) },
+                        ) {
+                            Text(
+                                "START →",
+                                color = Color(0xFFFFD700),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }
