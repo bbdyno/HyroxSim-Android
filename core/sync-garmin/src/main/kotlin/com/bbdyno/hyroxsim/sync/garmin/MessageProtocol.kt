@@ -31,5 +31,10 @@ object MessageProtocol {
         const val WORKOUT_COMPLETED = "workout.completed"
         const val LIVE_STATE       = "live.state"
         const val ACK              = "ack"
+        // Watch boot ping. Watch emits this once on app open so the phone
+        // can re-push templates and goals even when no `hello` round-trip
+        // happened (e.g. phone was already foreground+connected before the
+        // user opened the watch app).
+        const val SYNC_REQUEST     = "sync.request"
     }
 }

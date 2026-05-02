@@ -16,8 +16,22 @@ interface GarminBridge {
     fun requestDeviceSelection()
     /** Returns true when the envelope was accepted for delivery (device connected, app tracked). */
     fun sendEnvelope(envelope: Map<String, Any?>): Boolean
+    /**
+     * Send a `hello` ping. Safe to call repeatedly — CIQ does not buffer
+     * messages while the watch app is closed, so we resend on foreground
+     * and on each device reconnect to give the watch a chance to record
+     * pairing once the user opens the watch-side app.
+     */
+    fun sendHello(appVersion: String)
     fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit)
     fun setOnConnectionChanged(handler: (Boolean) -> Unit)
+    /**
+     * Fired when the watch reports it is alive: either as a `hello.ack`
+     * response to our hello, or as an unsolicited `sync.request` boot
+     * ping. Both signals mean the same thing — re-push templates and the
+     * active goal because pre-pairing pushes were silently dropped.
+     */
+    fun setOnHelloAck(handler: () -> Unit)
     val connectedDeviceName: String?
     /** True when a paired watch is currently connected — gate for all push flows. */
     val isPaired: Boolean
@@ -52,6 +66,8 @@ class RealGarminBridge(context: Context) : GarminBridge,
 
     private var messageHandler: (Map<String, Any?>) -> Unit = {}
     private var connectionHandler: (Boolean) -> Unit = {}
+    private var helloAckHandler: () -> Unit = {}
+    private var lastAppVersion: String = "0.0.0"
 
     private val appUuid: UUID = UUID.fromString("ab20831c-3cc3-a8f6-b692-02dd7e0ca823")
 
@@ -111,12 +127,29 @@ class RealGarminBridge(context: Context) : GarminBridge,
         }
     }
 
+    override fun sendHello(appVersion: String) {
+        lastAppVersion = appVersion
+        sendEnvelope(
+            GarminMessageCodec.makeEnvelope(
+                type = MessageProtocol.Type.HELLO,
+                payload = mapOf(
+                    "phone_os" to "android",
+                    "app_version" to appVersion,
+                ),
+            )
+        )
+    }
+
     override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {
         messageHandler = handler
     }
 
     override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {
         connectionHandler = handler
+    }
+
+    override fun setOnHelloAck(handler: () -> Unit) {
+        helloAckHandler = handler
     }
 
     // MARK: - ConnectIQListener
@@ -144,6 +177,12 @@ class RealGarminBridge(context: Context) : GarminBridge,
     override fun onDeviceStatusChanged(device: IQDevice?, status: IQDevice.IQDeviceStatus?) {
         val isConnected = status == IQDevice.IQDeviceStatus.CONNECTED
         connectionHandler(isConnected)
+        // CIQ does not queue app messages while the watch app is closed,
+        // and we get no per-app "ready" callback equivalent to iOS's
+        // `deviceCharacteristicsDiscovered`. Resending hello on every
+        // device-level reconnect is the cheapest way to give the watch a
+        // fresh chance to record pairing once the user opens its app.
+        if (isConnected) sendHello(lastAppVersion)
     }
 
     // MARK: - IQApplicationEventListener
@@ -157,7 +196,16 @@ class RealGarminBridge(context: Context) : GarminBridge,
         if (status != ConnectIQ.IQMessageStatus.SUCCESS) return
         val payload = messageData?.firstOrNull() as? Map<*, *> ?: return
         @Suppress("UNCHECKED_CAST")
-        messageHandler(payload as Map<String, Any?>)
+        val envelope = payload as Map<String, Any?>
+        // hello.ack and sync.request both confirm the watch app is alive.
+        // Trigger the resync hook before forwarding to the generic handler
+        // so listeners can re-push state in the same pass.
+        val type = envelope[MessageProtocol.Key.TYPE] as? String
+        if (type == MessageProtocol.Type.HELLO_ACK
+                || type == MessageProtocol.Type.SYNC_REQUEST) {
+            helloAckHandler()
+        }
+        messageHandler(envelope)
     }
 
     private fun connect(device: IQDevice) {
@@ -185,18 +233,38 @@ class StubGarminBridge(
     override val connectedDeviceName: String? get() = if (paired) "Stub Watch" else null
     override val isPaired: Boolean get() = paired
     private var messageHandler: (Map<String, Any?>) -> Unit = {}
+    private var helloAckHandler: () -> Unit = {}
     override fun requestDeviceSelection() {}
     override fun sendEnvelope(envelope: Map<String, Any?>): Boolean {
         if (!paired) return false
         capturedEnvelopes += envelope
         return true
     }
+    override fun sendHello(appVersion: String) {
+        sendEnvelope(
+            GarminMessageCodec.makeEnvelope(
+                type = MessageProtocol.Type.HELLO,
+                payload = mapOf(
+                    "phone_os" to "android",
+                    "app_version" to appVersion,
+                ),
+            )
+        )
+    }
     override fun setOnMessageReceived(handler: (Map<String, Any?>) -> Unit) {
         messageHandler = handler
     }
     override fun setOnConnectionChanged(handler: (Boolean) -> Unit) {}
+    override fun setOnHelloAck(handler: () -> Unit) {
+        helloAckHandler = handler
+    }
     /** Test helper: simulate a watch-sourced envelope arriving. */
     fun simulateMessage(envelope: Map<String, Any?>) {
+        val type = envelope[MessageProtocol.Key.TYPE] as? String
+        if (type == MessageProtocol.Type.HELLO_ACK
+                || type == MessageProtocol.Type.SYNC_REQUEST) {
+            helloAckHandler()
+        }
         messageHandler(envelope)
     }
 }
