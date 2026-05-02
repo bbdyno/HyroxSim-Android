@@ -9,6 +9,7 @@ import com.bbdyno.hyroxsim.core.persistence.dao.WorkoutDao
 import com.bbdyno.hyroxsim.core.persistence.repository.GoalRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.TemplateRepository
 import com.bbdyno.hyroxsim.core.persistence.repository.WorkoutRepository
+import com.bbdyno.hyroxsim.sync.GarminPairingCoordinator
 import com.bbdyno.hyroxsim.sync.garmin.GarminBridge
 import com.bbdyno.hyroxsim.sync.garmin.GarminGoalSyncService
 import com.bbdyno.hyroxsim.sync.garmin.GarminImportService
@@ -78,4 +79,20 @@ object AppModule {
     @Provides
     @Singleton
     fun providePacePlanner(): PacePlanner = PacePlanner.loadBundled()
+
+    @Provides
+    @Singleton
+    fun provideGarminPairingCoordinator(
+        bridge: GarminBridge,
+        templates: TemplateRepository,
+        goals: GoalRepository,
+        templateSync: GarminTemplateSyncService,
+        goalSync: GarminGoalSyncService,
+    ): GarminPairingCoordinator = GarminPairingCoordinator(
+        bridge = bridge,
+        templateRepo = templates,
+        goalRepo = goals,
+        templateSync = templateSync,
+        goalSync = goalSync,
+    )
 }

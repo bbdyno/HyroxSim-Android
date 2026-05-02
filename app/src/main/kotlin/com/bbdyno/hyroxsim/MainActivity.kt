@@ -43,11 +43,16 @@ import com.bbdyno.hyroxsim.feature.home.TemplateDetailRoute
 import com.bbdyno.hyroxsim.feature.settings.SettingsRoute
 import com.bbdyno.hyroxsim.feature.summary.SummaryRoute
 import com.bbdyno.hyroxsim.nav.Route
+import com.bbdyno.hyroxsim.sync.garmin.GarminBridge
 import com.bbdyno.hyroxsim.ui.theme.HyroxTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var garminBridge: GarminBridge
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -56,6 +61,22 @@ class MainActivity : ComponentActivity() {
                 HyroxRootNav()
             }
         }
+    }
+
+    /**
+     * Mirrors iOS `SceneDelegate.sceneDidBecomeActive`. The CIQ phone-app
+     * message channel does not buffer for an offline watch app, so a hello
+     * sent while the watch app was closed is lost. The phone app coming
+     * back to the foreground is our best signal that the user is about to
+     * (or just did) open the watch app — resending hello here lets the
+     * watch's PairingStore flip on the very first message.
+     */
+    override fun onResume() {
+        super.onResume()
+        val versionName = runCatching {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        }.getOrNull() ?: "0.0.0"
+        garminBridge.sendHello(versionName)
     }
 }
 
